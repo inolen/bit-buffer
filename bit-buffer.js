@@ -84,7 +84,7 @@ BitBuffer.prototype.readBits = function (bits, signed) {
 
 BitBuffer.prototype.writeBits = function (value, bits) {
 	if (bits > this.available) {
-		throw new Error('Cannot write ' + value + ' using ' + bits + ' bit(s), ' + available + ' available');
+		throw new Error('Cannot write ' + bits + ' bit(s), ' + this.available + ' available');
 	}
 
 	for (var i = 0; i < bits; i++) {
@@ -134,10 +134,6 @@ BitBuffer.prototype.writeFloat32 = function (value) {
 };
 
 BitBuffer.prototype.readASCIIString = function (bytes) {
-	if (bytes * 8 > this.available) {
-		throw new Error('Cannot read ' + bytes + ' byte(s), ' + this.available / 8 + ' available');
-	}
-
 	// Read all the bytes into chars, but stop appending at
 	// the first 0x00.
 	var i = 0;
@@ -146,8 +142,8 @@ BitBuffer.prototype.readASCIIString = function (bytes) {
 
 	// Read while we still have space available, or until we've
 	// hit the fixed byte length passed in.
-	while (this.available && (!bytes || (bytes && i < bytes))) {
-		var c = this.readBits(8, true);
+	while (!bytes || (bytes && i < bytes)) {
+		var c = this.readUint8();
 
 		// Stop appending chars once we hit 0x00
 		if (c === 0x00) {
