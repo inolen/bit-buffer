@@ -11,7 +11,7 @@ var BitBuffer = function (source) {
 
 Object.defineProperty(BitBuffer.prototype, 'length', {
 	get: function () {
-		return this._buffer.byteLength;
+		return this._buffer.byteLength * 8;
 	},
 	enumerable: true,
 	configurable: false
@@ -19,13 +19,13 @@ Object.defineProperty(BitBuffer.prototype, 'length', {
 
 Object.defineProperty(BitBuffer.prototype, 'available', {
 	get: function () {
-		return this.length * 8 - this._offset;
+		return this.length - this._offset;
 	},
 	enumerable: true,
 	configurable: true
 });
 
-Object.defineProperty(BitBuffer.prototype, 'bitOffset', {
+Object.defineProperty(BitBuffer.prototype, 'offset', {
 	get: function () {
 		return this._offset;
 	},
