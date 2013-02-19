@@ -1,62 +1,75 @@
 BitBuffer
 ==========
 
-BitBuffer is a wrapper for ArrayBuffers, similar to JavaScript's [DataView](https://developer.mozilla.org/en-US/docs/JavaScript/Typed_arrays/DataView), but with support for bit-level reads and writes.
+BitBuffer provides two objects, `BitView` and `BitStream`. `BitView` is a wrapper for ArrayBuffers, similar to JavaScript's [DataView](https://developer.mozilla.org/en-US/docs/JavaScript/Typed_arrays/DataView), but with support for bit-level reads and writes. `BitStream` is a wrapper for a `BitView` used to help maintain your current buffer position, as well as to provide higher-level read / write operations such as for ASCII strings.
+
+
+## BitView
 
 ### Attributes
 
 ```javascript
-bb.length  // Length in bits of underlying array buffer.
-```
-
-```javascript
-bb.available  // Number of available bits.
-```
-
-```javascript
-bb.offset  // Get current offset in bits.
-bb.offset = 0;  // Set current offset in bits.
-```
-
-```javascript
-bb.byteOffset  // Get current offset in bytes.
-bb.byteOffset = 0;  // Set current offset in bytes.
+bb.buffer  // Underlying ArrayBuffer.
 ```
 
 ### Methods
 
-#### BitBuffer(buffer)
+#### BitView(buffer)
 
 Default constructor, takes in a single argument of an ArrayBuffer.
 
-### readBits(bits, signed)
+### getBits(offset, bits, signed)
 
-Reads `bits` number of bits, updating the current offset in our view, and twiddling the bits appropriately to return a proper 32-bit signed or unsigned value. NOTE: While JavaScript numbers are 64-bit floating-point values, we don't bother with anything other than the first 32 bits.
+Reads `bits` number of bits starting at `offset`, twiddling the bits appropriately to return a proper 32-bit signed or unsigned value. NOTE: While JavaScript numbers are 64-bit floating-point values, we don't bother with anything other than the first 32 bits.
 
-### readInt8, readUint8, readInt16, readUint16, readInt32, readUint32
+### getInt8, getUint8, getInt16, getUint16, getInt32, getUint32(offset)
 
-Shortcuts for readBits, setting the correct `bits` / `signed` values.
+Shortcuts for getBits, setting the correct `bits` / `signed` values.
 
-### readFloat32
+### getFloat32(offset)
 
-Reads 32 bits from the buffer, and coerces and returns as a proper float32 value.
+Gets 32 bits from `offset`, and coerces and returns as a proper float32 value.
 
-### writeBits(value, bits)
+### setBits(offset, value, bits)
 
-Writes `bits` number of bits to the buffer, updating the current offset in our view.
+Sets `bits` number of bits at `offset`.
 
-### writeInt8, writeUint8, writeInt16, writeUint16, writeInt32, writeUint32
+### setInt8, setUint8, setInt16, setUint16, setInt32, setUint32(offset)
 
-Shortcuts for writeBits, setting the correct `bits` count.
+Shortcuts for setBits, setting the correct `bits` count.
 
-### writeFloat32
+### setFloat32(offset)
 
-Coerces a float32 to uint32 and writes to the buffer.
+Coerces a float32 to uint32 and sets at `offset`.
 
-### readASCIIString(bytes)
 
-Reads an ASCII string from the buffer, returning up to the trailing NULL character. NOTE: `bytes` is an optional parameter, if specified the offset to the buffer will always be increased by `bytes` count.
+## BitStream
 
-### writeASCIIString(string, bytes)
+### Attributes
 
-Writes a string followed by a NULL character to the buffer. NOTE: `bytes` is again optional, if specified the string will be truncated if its length is longer than `bytes`, or padded with NULL characters if shorter.
+```javascript
+bb.byteIndex  // Get current index in bytes.
+bb.byteIndex = 0;  // Set current index in bytes.
+```
+
+```javascript
+bb.view  // Underlying BitView
+```
+
+### Methods
+
+#### readBits(bits, signed)
+
+Updates our current index by `bits` and returns `bits` numbers of bits from the view.
+
+#### writeBits(value, bits)
+
+Sets `bits` numbers of bits from `values` in the view and updates our current index by `bits`.
+
+#### readASCIIString(optional bytes)
+
+Reads bytes from the underlying view until either `bytes` count is reached or a 0x00 terminator is reached.
+
+#### writeASCIIString(string, optional bytes)
+
+Writes a string followed by a NULL character to the buffer. If the string is longer than `bytes` it will be truncated, and if it is shorter 0x00 will be written in its place.
