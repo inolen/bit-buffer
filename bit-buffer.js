@@ -166,22 +166,9 @@ BitBuffer.prototype.readASCIIString = function (bytes) {
 		i++;
 	}
 
-	// Truncate byte count to actual string length.
-	bytes = chars.length;
-
-	var limit = 1 << 16;
-
-	if (bytes < limit) {
-		return String.fromCharCode.apply(String, chars);
-	} else {
-		var parts = [];
-
-		for (var i = 0; i < bytes; i += limit) {
-			parts.push(String.fromCharCode.apply(String, chars.slice(i, i + limit)));
-		}
-
-		return parts.join('');
-	}
+	return chars.map(function (x) {
+		return String.fromCharCode(x);
+	}).join('');
 };
 
 BitBuffer.prototype.writeASCIIString = function(string, bytes) {
