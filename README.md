@@ -60,16 +60,16 @@ bb.view  // Underlying BitView
 
 #### readBits(bits, signed)
 
-Updates our current index by `bits` and returns `bits` numbers of bits from the view.
+Returns `bits` numbers of bits from the view at the current index, updating the index.
 
 #### writeBits(value, bits)
 
-Sets `bits` numbers of bits from `values` in the view and updates our current index by `bits`.
+Sets `bits` numbers of bits from `value` in the view at the current index, updating the index.
 
 #### readASCIIString(optional bytes)
 
-Reads bytes from the underlying view until either `bytes` count is reached or a 0x00 terminator is reached.
+Reads bytes from the underlying view at the current index until either `bytes` count is reached or a 0x00 terminator is reached.
 
 #### writeASCIIString(string, optional bytes)
 
-Writes a string followed by a NULL character to the buffer. If the string is longer than `bytes` it will be truncated, and if it is shorter 0x00 will be written in its place.
+Writes a string followed by a NULL character to the underlying view starting at the current index. If the string is longer than `bytes` it will be truncated, and if it is shorter 0x00 will be written in its place.
