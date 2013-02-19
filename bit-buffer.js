@@ -1,72 +1,54 @@
 (function (root) {
 
-var BitBuffer = function (source) {
-	this._buffer = source.buffer ? source.buffer : source;
+/**********************************************************
+ *
+ * BitView
+ *
+ * BitView provides a similar interface to the standard
+ * DataView, but with support for bit-level reads / writes.
+ *
+ **********************************************************/
+var BitView = function (source) {
+	if (!source || !(source instanceof ArrayBuffer)) {
+		throw new Error('Must specify a valid ArrayBuffer.');
+	}
+
+	this._buffer = source;
 	this._view = new Uint8Array(this._buffer);
-	this._offset = 0;
+
 	// Used to massage fp values so we can operate on them
 	// at the bit level.
 	this._scratch = new DataView(new ArrayBuffer(4));
 };
 
-Object.defineProperty(BitBuffer.prototype, 'length', {
-	get: function () {
-		return this._buffer.byteLength * 8;
-	},
+Object.defineProperty(BitView.prototype, 'buffer', {
+	get: function () { return this._buffer; },
 	enumerable: true,
 	configurable: false
 });
 
-Object.defineProperty(BitBuffer.prototype, 'available', {
-	get: function () {
-		return this.length - this._offset;
-	},
-	enumerable: true,
-	configurable: true
-});
-
-Object.defineProperty(BitBuffer.prototype, 'offset', {
-	get: function () {
-		return this._offset;
-	},
-	set: function (val) {
-		this._offset = val;
-	},
-	enumerable: true,
-	configurable: true
-});
-
-Object.defineProperty(BitBuffer.prototype, 'byteOffset', {
-	get: function () {
-		return this._offset >> 3;
-	},
-	set: function (val) {
-		this._offset = val << 3;
-	},
-	enumerable: true,
-	configurable: true
-});
-
-BitBuffer.prototype._getBit = function (offset) {
+BitView.prototype._getBit = function (offset) {
 	return this._view[offset >> 3] >> (offset & 7) & 0x1;
 };
 
-BitBuffer.prototype._setBit = function (offset, value) {
+BitView.prototype._setBit = function (offset, value) {
 	this._view[offset >> 3] |= value << (offset&7);
 };
 
-BitBuffer.prototype.readBits = function (bits, signed) {
-	if (bits > this.available) {
-		throw new Error('Cannot read ' + bits + ' bit(s), ' + this.available + ' available');
+BitView.prototype.getBits = function (offset, bits, signed) {
+	var available = (this._buffer.byteLength * 8 - offset);
+
+	if (bits > available) {
+		throw new Error('Cannot get ' + bits + ' bit(s) from offset ' + offset + ', ' + available + ' available');
 	}
+
+	// FIXME We could compare bits to offset's alignment
+	// and OR on entire byte if appropriate.
 
 	var value = 0;
 	for (var i = 0; i < bits; i++) {
-		value |= (this._getBit(this._offset++) << i);
+		value |= (this._getBit(offset++) << i);
 	}
-
-	// FIXME We could compare bits to this._offset's alignment
-	// and OR on entire byte if appropriate.
 
 	if (signed) {
 		// If we're not working with a full 32 bits, check the
@@ -82,60 +64,139 @@ BitBuffer.prototype.readBits = function (bits, signed) {
 	return value >>> 0;
 };
 
-BitBuffer.prototype.writeBits = function (value, bits) {
-	if (bits > this.available) {
-		throw new Error('Cannot write ' + bits + ' bit(s), ' + this.available + ' available');
+BitView.prototype.setBits = function (offset, value, bits) {
+	var available = (this._buffer.byteLength * 8 - offset);
+
+	if (bits > available) {
+		throw new Error('Cannot set ' + bits + ' bit(s) from offset ' + offset + ', ' + available + ' available');
 	}
 
 	for (var i = 0; i < bits; i++) {
-		this._setBit(this._offset++, value & 0x1);
+		this._setBit(offset++, value & 0x1);
 		value = (value >> 1);
 	}
 };
 
-BitBuffer.prototype.readInt8 = function () {
-	return this.readBits(8, true);
+BitView.prototype.getInt8 = function (offset) {
+	return this.getBits(offset, 8, true);
 };
-BitBuffer.prototype.readUint8 = function () {
-	return this.readBits(8, false);
+BitView.prototype.getUint8 = function (offset) {
+	return this.getBits(offset, 8, false);
 };
-BitBuffer.prototype.readInt16 = function () {
-	return this.readBits(16, true);
+BitView.prototype.getInt16 = function (offset) {
+	return this.getBits(offset, 16, true);
 };
-BitBuffer.prototype.readUint16 = function () {
-	return this.readBits(16, false);
+BitView.prototype.getUint16 = function (offset) {
+	return this.getBits(offset, 16, false);
 };
-BitBuffer.prototype.readInt32 = function () {
-	return this.readBits(32, true);
+BitView.prototype.getInt32 = function (offset) {
+	return this.getBits(offset, 32, true);
 };
-BitBuffer.prototype.readUint32 = function () {
-	return this.readBits(32, false);
+BitView.prototype.getUint32 = function (offset) {
+	return this.getBits(offset, 32, false);
 };
-BitBuffer.prototype.readFloat32 = function () {
-	this._scratch.setUint32(0, this.readUint32());
+BitView.prototype.getFloat32 = function (offset) {
+	this._scratch.setUint32(0, this.getUint32(offset));
 	return this._scratch.getFloat32(0);
 };
 
-BitBuffer.prototype.writeInt8  =
-BitBuffer.prototype.writeUint8 = function (value) {
-	this.writeBits(value, 8);
+BitView.prototype.setInt8  =
+BitView.prototype.setUint8 = function (offset, value) {
+	this.setBits(offset, value, 8);
 };
-BitBuffer.prototype.writeInt16  =
-BitBuffer.prototype.writeUint16 = function (value) {
-	this.writeBits(value, 16);
+BitView.prototype.setInt16  =
+BitView.prototype.setUint16 = function (offset, value) {
+	this.setBits(offset, value, 16);
 };
-BitBuffer.prototype.writeInt32  =
-BitBuffer.prototype.writeUint32 = function (value) {
-	this.writeBits(value, 32);
+BitView.prototype.setInt32  =
+BitView.prototype.setUint32 = function (offset, value) {
+	this.setBits(offset, value, 32);
 };
-BitBuffer.prototype.writeFloat32 = function (value) {
+BitView.prototype.setFloat32 = function (offset, value) {
 	this._scratch.setFloat32(0, value);
-	this.writeBits(this._scratch.getUint32(0), 32);
+	this.setBits(offset, this._scratch.getUint32(0), 32);
 };
 
-BitBuffer.prototype.readASCIIString = function (bytes) {
-	// Read all the bytes into chars, but stop appending at
-	// the first 0x00.
+/**********************************************************
+ *
+ * BitStream
+ *
+ * Small wrapper for a BitView to maintain your position,
+ * as well as to handle reading / writing of string data
+ * to the underlying buffer.
+ *
+ **********************************************************/
+var BitStream = function (source) {
+	if (!(source instanceof BitView) && !(source instanceof ArrayBuffer)) {
+		throw new Error('Must specify a valid BitView or ArrayBuffer');
+	}
+
+	if (source instanceof ArrayBuffer) {
+		this._view = new BitView(source);
+	} else {
+		this._view = source;
+	}
+	this._index = 0;
+};
+
+Object.defineProperty(BitStream.prototype, 'byteIndex', {
+	// Ceil the returned value, over compensating for the amount of
+	// bits written to the stream.
+	get: function () { return Math.ceil(this._index / 8); },
+	set: function (val) { this._index = val * 8; },
+	enumerable: true,
+	configurable: true
+});
+
+Object.defineProperty(BitStream.prototype, 'view', {
+	get: function () { return this._view; },
+	enumerable: true,
+	configurable: false
+});
+
+var reader = function (name, bits) {
+	return function () {
+		var val = this._view[name](this._index);
+		this._index += bits;
+		return val;
+	};
+};
+
+var writer = function (name, bits) {
+	return function (value) {
+		this._view[name](this._index, value);
+		this._index += bits;
+	};
+};
+
+BitStream.prototype.readBits = function (bits, signed) {
+	var val = this._view.getBits(this._index, bits, signed);
+	this._index += bits;
+	return val;
+};
+
+BitStream.prototype.writeBits = function (value, bits) {
+	this._view.setBits(this._index, value, bits);
+	this._index += bits;
+};
+
+BitStream.prototype.readInt8 = reader('getInt8', 8);
+BitStream.prototype.readUint8 = reader('getUint8', 8);
+BitStream.prototype.readInt16 = reader('getInt16', 16);
+BitStream.prototype.readUint16 = reader('getUint16', 16);
+BitStream.prototype.readInt32 = reader('getInt32', 32);
+BitStream.prototype.readUint32 = reader('getUint32', 32);
+BitStream.prototype.readFloat32 = reader('getFloat32', 32);
+
+BitStream.prototype.writeInt8 = writer('setInt8', 8);
+BitStream.prototype.writeUint8 = writer('setUint8', 8);
+BitStream.prototype.writeInt16 = writer('setInt16', 16);
+BitStream.prototype.writeUint16 = writer('setUint16', 16);
+BitStream.prototype.writeInt32 = writer('setInt32', 32);
+BitStream.prototype.writeUint32 = writer('setUint32', 32);
+BitStream.prototype.writeFloat32 = writer('setFloat32', 32);
+
+BitStream.prototype.readASCIIString = function (bytes) {
 	var i = 0;
 	var chars = [];
 	var append = true;
@@ -162,32 +223,40 @@ BitBuffer.prototype.readASCIIString = function (bytes) {
 		i++;
 	}
 
+	// Convert char code array back to string.
 	return chars.map(function (x) {
 		return String.fromCharCode(x);
 	}).join('');
 };
 
-BitBuffer.prototype.writeASCIIString = function(string, bytes) {
+BitStream.prototype.writeASCIIString = function(string, bytes) {
 	var length = bytes || string.length + 1;  // + 1 for NULL
 
 	for (var i = 0; i < length; i++) {
-		this.writeBits(i < string.length ? string.charCodeAt(i) : 0x00, 8);
+		this.writeUint8(i < string.length ? string.charCodeAt(i) : 0x00);
 	}
-};
+}
 
 // AMD / RequireJS
 if (typeof define !== 'undefined' && define.amd) {
 	define(function () {
-		return BitBuffer;
+		return {
+			BitView: BitView,
+			BitStream: BitStream
+		};
 	});
 }
 // Node.js
 else if (typeof module !== 'undefined' && module.exports) {
-	module.exports = BitBuffer;
+	module.exports = {
+		BitView: BitView,
+		BitStream: BitStream
+	};
 }
 // included directly via <script> tag
 else {
-	root.async = async;
+	root.BitView = BitView;
+	root.BitStream = BitStream;
 }
 
 }(this));
