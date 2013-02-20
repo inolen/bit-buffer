@@ -95,7 +95,14 @@ suite('BitBuffer', function () {
 		assert(bsr.readBits(5) === 14);
 	});
 
-	test('ASCII string, fixed length', function () {
+	test('Overwrite previous value with 0', function () {
+		bv.setUint8(0, 13);
+		bv.setUint8(0, 0);
+
+		assert(bv.getUint8(0) === 0);
+	});
+
+	test('Read / write ASCII string, fixed length', function () {
 		var str = 'foobar';
 		var len = 16;
 
@@ -106,7 +113,7 @@ suite('BitBuffer', function () {
 		assert(bsr.byteIndex === len);
 	});
 
-	test('ASCII string, unknown length', function () {
+	test('Read / write ASCII string, unknown length', function () {
 		var str = 'foobar';
 
 		bsw.writeASCIIString(str);

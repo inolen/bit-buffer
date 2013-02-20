@@ -14,9 +14,9 @@ bb.buffer  // Underlying ArrayBuffer.
 
 ### Methods
 
-#### BitView(buffer)
+#### BitView(buffer, optional byteOffset, optional byteLength)
 
-Default constructor, takes in a single argument of an ArrayBuffer.
+Default constructor, takes in a single argument of an ArrayBuffer. Optional are the `byteOffset` and `byteLength` arguments to offset and truncate the view's representation of the buffer.
 
 ### getBits(offset, bits, signed)
 
@@ -57,6 +57,14 @@ bb.view  // Underlying BitView
 ```
 
 ### Methods
+
+#### BitStream(view)
+
+Default constructor, takes in a single argument of a BitView.
+
+#### BitSteam(buffer, optional byteOffset, optional byteLength)
+
+Shortcut constructor that initializes a new `BitView(buffer, byteOffset, byteLength)` for the stream to use.
 
 #### readBits(bits, signed)
 

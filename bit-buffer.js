@@ -8,13 +8,13 @@
  * DataView, but with support for bit-level reads / writes.
  *
  **********************************************************/
-var BitView = function (source) {
-	if (!source || !(source instanceof ArrayBuffer)) {
+var BitView = function (source, byteOffset, byteLength) {
+	if (!(source instanceof ArrayBuffer)) {
 		throw new Error('Must specify a valid ArrayBuffer.');
 	}
 
 	this._buffer = source;
-	this._view = new Uint8Array(this._buffer);
+	this._view = new Uint8Array(this._buffer, byteOffset || 0, byteLength || this._buffer.byteLength);
 
 	// Used to massage fp values so we can operate on them
 	// at the bit level.
@@ -31,12 +31,16 @@ BitView.prototype._getBit = function (offset) {
 	return this._view[offset >> 3] >> (offset & 7) & 0x1;
 };
 
-BitView.prototype._setBit = function (offset, value) {
-	this._view[offset >> 3] |= value << (offset&7);
+BitView.prototype._setBit = function (offset, on) {
+	if (on) {
+		this._view[offset >> 3] |= 1 << (offset & 7);
+	} else {
+		this._view[offset >> 3] &= ~(1 << (offset & 7));
+	}
 };
 
 BitView.prototype.getBits = function (offset, bits, signed) {
-	var available = (this._buffer.byteLength * 8 - offset);
+	var available = (this._view.length * 8 - offset);
 
 	if (bits > available) {
 		throw new Error('Cannot get ' + bits + ' bit(s) from offset ' + offset + ', ' + available + ' available');
@@ -65,7 +69,7 @@ BitView.prototype.getBits = function (offset, bits, signed) {
 };
 
 BitView.prototype.setBits = function (offset, value, bits) {
-	var available = (this._buffer.byteLength * 8 - offset);
+	var available = (this._view.length * 8 - offset);
 
 	if (bits > available) {
 		throw new Error('Cannot set ' + bits + ' bit(s) from offset ' + offset + ', ' + available + ' available');
@@ -126,13 +130,13 @@ BitView.prototype.setFloat32 = function (offset, value) {
  * to the underlying buffer.
  *
  **********************************************************/
-var BitStream = function (source) {
+var BitStream = function (source, byteOffset, byteLength) {
 	if (!(source instanceof BitView) && !(source instanceof ArrayBuffer)) {
 		throw new Error('Must specify a valid BitView or ArrayBuffer');
 	}
 
 	if (source instanceof ArrayBuffer) {
-		this._view = new BitView(source);
+		this._view = new BitView(source, byteOffset, byteLength);
 	} else {
 		this._view = source;
 	}
@@ -146,6 +150,12 @@ Object.defineProperty(BitStream.prototype, 'byteIndex', {
 	set: function (val) { this._index = val * 8; },
 	enumerable: true,
 	configurable: true
+});
+
+Object.defineProperty(BitStream.prototype, 'buffer', {
+	get: function () { return this.view.buffer; },
+	enumerable: true,
+	configurable: false
 });
 
 Object.defineProperty(BitStream.prototype, 'view', {
