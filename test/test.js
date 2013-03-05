@@ -95,6 +95,40 @@ suite('BitBuffer', function () {
 		assert(bsr.readBits(5) === 14);
 	});
 
+	test('Min / max float32 (normal values)', function () {
+		var scratch = new DataView(new ArrayBuffer(8));
+
+		scratch.setUint32(0, 0x00800000);
+		scratch.setUint32(4, 0x7f7fffff);
+
+		var min = scratch.getFloat32(0);
+		var max = scratch.getFloat32(4);
+
+		bsw.writeFloat32(min);
+		bsw.writeFloat32(max);
+
+		assert(bsr.readFloat32() === min);
+		assert(bsr.readFloat32() === max);
+	});
+
+	test('Min / max float64 (normal values)', function () {
+		var scratch = new DataView(new ArrayBuffer(16));
+
+		scratch.setUint32(0, 0x00100000);
+		scratch.setUint32(4, 0x00000000);
+		scratch.setUint32(8, 0x7fefffff);
+		scratch.setUint32(12, 0xffffffff);
+
+		var min = scratch.getFloat64(0);
+		var max = scratch.getFloat64(8);
+
+		bsw.writeFloat64(min);
+		bsw.writeFloat64(max);
+
+		assert(bsr.readFloat64() === min);
+		assert(bsr.readFloat64() === max);
+	});
+
 	test('Overwrite previous value with 0', function () {
 		bv.setUint8(0, 13);
 		bv.setUint8(0, 0);
