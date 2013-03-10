@@ -9,17 +9,23 @@
  *
  **********************************************************/
 var BitView = function (source, byteOffset, byteLength) {
-	if (!(source instanceof ArrayBuffer)) {
-		throw new Error('Must specify a valid ArrayBuffer.');
+	var isBuffer = source instanceof ArrayBuffer ||
+		(typeof(Buffer) !== 'undefined' && source instanceof Buffer);
+
+	if (!isBuffer) {
+		throw new Error('Must specify a valid ArrayBuffer or Buffer.');
 	}
 
-	this._buffer = source;
-	this._view = new Uint8Array(this._buffer, byteOffset || 0, byteLength || this._buffer.byteLength);
+	byteOffset = byteOffset || 0;
+	byteLength = byteLength || source.byteLength /* ArrayBuffer */ || source.length /* Buffer */;
 
-	// Used to massage fp values so we can operate on them
-	// at the bit level.
-	this._scratch = new DataView(new ArrayBuffer(8));
+	this._buffer = source;
+	this._view = new Uint8Array(this._buffer, byteOffset, byteLength);
 };
+
+// Used to massage fp values so we can operate on them
+// at the bit level.
+BitView._scratch = new DataView(new ArrayBuffer(8));
 
 Object.defineProperty(BitView.prototype, 'buffer', {
 	get: function () { return this._buffer; },
@@ -100,14 +106,14 @@ BitView.prototype.getUint32 = function (offset) {
 	return this.getBits(offset, 32, false);
 };
 BitView.prototype.getFloat32 = function (offset) {
-	this._scratch.setUint32(0, this.getUint32(offset));
-	return this._scratch.getFloat32(0);
+	BitView._scratch.setUint32(0, this.getUint32(offset));
+	return BitView._scratch.getFloat32(0);
 };
 BitView.prototype.getFloat64 = function (offset) {
-	this._scratch.setUint32(0, this.getUint32(offset));
+	BitView._scratch.setUint32(0, this.getUint32(offset));
 	// DataView offset is in bytes.
-	this._scratch.setUint32(4, this.getUint32(offset+32));
-	return this._scratch.getFloat64(0);
+	BitView._scratch.setUint32(4, this.getUint32(offset+32));
+	return BitView._scratch.getFloat64(0);
 };
 
 BitView.prototype.setInt8  =
@@ -123,13 +129,13 @@ BitView.prototype.setUint32 = function (offset, value) {
 	this.setBits(offset, value, 32);
 };
 BitView.prototype.setFloat32 = function (offset, value) {
-	this._scratch.setFloat32(0, value);
-	this.setBits(offset, this._scratch.getUint32(0), 32);
+	BitView._scratch.setFloat32(0, value);
+	this.setBits(offset, BitView._scratch.getUint32(0), 32);
 };
 BitView.prototype.setFloat64 = function (offset, value) {
-	this._scratch.setFloat64(0, value);
-	this.setBits(offset, this._scratch.getUint32(0), 32);
-	this.setBits(offset+32, this._scratch.getUint32(4), 32);
+	BitView._scratch.setFloat64(0, value);
+	this.setBits(offset, BitView._scratch.getUint32(0), 32);
+	this.setBits(offset+32, BitView._scratch.getUint32(4), 32);
 };
 
 /**********************************************************
@@ -142,11 +148,14 @@ BitView.prototype.setFloat64 = function (offset, value) {
  *
  **********************************************************/
 var BitStream = function (source, byteOffset, byteLength) {
-	if (!(source instanceof BitView) && !(source instanceof ArrayBuffer)) {
-		throw new Error('Must specify a valid BitView or ArrayBuffer');
+	var isBuffer = source instanceof ArrayBuffer ||
+		(typeof(Buffer) !== 'undefined' && source instanceof Buffer);
+
+	if (!(source instanceof BitView) && !isBuffer) {
+		throw new Error('Must specify a valid BitView, ArrayBuffer or Buffer');
 	}
 
-	if (source instanceof ArrayBuffer) {
+	if (isBuffer) {
 		this._view = new BitView(source, byteOffset, byteLength);
 	} else {
 		this._view = source;
