@@ -30,6 +30,10 @@ Shortcuts for getBits, setting the correct `bits` / `signed` values.
 
 Gets 32 bits from `offset`, and coerces and returns as a proper float32 value.
 
+### getFloat64(offset)
+
+Gets 64 bits from `offset`, and coerces and returns as a proper float64 value.
+
 ### setBits(offset, value, bits)
 
 Sets `bits` number of bits at `offset`.
@@ -41,6 +45,10 @@ Shortcuts for setBits, setting the correct `bits` count.
 ### setFloat32(offset)
 
 Coerces a float32 to uint32 and sets at `offset`.
+
+### setFloat64(offset)
+
+Coerces a float64 to two uint32s and sets at `offset`.
 
 
 ## BitStream
