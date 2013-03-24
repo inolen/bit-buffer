@@ -33,6 +33,12 @@ Object.defineProperty(BitView.prototype, 'buffer', {
 	configurable: false
 });
 
+Object.defineProperty(BitView.prototype, 'byteLength', {
+	get: function () { return this._view.length; },
+	enumerable: true,
+	configurable: false
+});
+
 BitView.prototype._getBit = function (offset) {
 	return this._view[offset >> 3] >> (offset & 7) & 0x1;
 };
@@ -52,12 +58,21 @@ BitView.prototype.getBits = function (offset, bits, signed) {
 		throw new Error('Cannot get ' + bits + ' bit(s) from offset ' + offset + ', ' + available + ' available');
 	}
 
-	// FIXME We could compare bits to offset's alignment
-	// and OR on entire byte if appropriate.
-
 	var value = 0;
-	for (var i = 0; i < bits; i++) {
-		value |= (this._getBit(offset++) << i);
+	for (var i = 0; i < bits;) {
+		var read;
+
+		// Read an entire byte if we can.
+		if ((bits - i) >= 8 && ((offset & 7) === 0)) {
+			value |= (this._view[offset >> 3] << i);
+			read = 8;
+		} else {
+			value |= (this._getBit(offset) << i);
+			read = 1;
+		}
+
+		offset += read;
+		i += read;
 	}
 
 	if (signed) {
@@ -81,9 +96,22 @@ BitView.prototype.setBits = function (offset, value, bits) {
 		throw new Error('Cannot set ' + bits + ' bit(s) from offset ' + offset + ', ' + available + ' available');
 	}
 
-	for (var i = 0; i < bits; i++) {
-		this._setBit(offset++, value & 0x1);
-		value = (value >> 1);
+	for (var i = 0; i < bits;) {
+		var wrote;
+
+		// Write an entire byte if we can.
+		if ((bits - i) >= 8 && ((offset & 7) === 0)) {
+			this._view[offset >> 3] = value & 0xFF;
+			wrote = 8;
+		} else {
+			this._setBit(offset, value & 0x1);
+			wrote = 1;
+		}
+
+		value = (value >> wrote);
+
+		offset += wrote;
+		i += wrote;
 	}
 };
 
@@ -147,12 +175,68 @@ BitView.prototype.setFloat64 = function (offset, value) {
  * to the underlying buffer.
  *
  **********************************************************/
+var reader = function (name, size) {
+	return function () {
+		var val = this._view[name](this._index);
+		this._index += size;
+		return val;
+	};
+};
+
+var writer = function (name, size) {
+	return function (value) {
+		this._view[name](this._index, value);
+		this._index += size;
+	};
+};
+
+function readASCIIString(stream, bytes) {
+	var i = 0;
+	var chars = [];
+	var append = true;
+
+	// Read while we still have space available, or until we've
+	// hit the fixed byte length passed in.
+	while (!bytes || (bytes && i < bytes)) {
+		var c = stream.readUint8();
+
+		// Stop appending chars once we hit 0x00
+		if (c === 0x00) {
+			append = false;
+
+			// If we don't have a fixed length to read, break out now.
+			if (!bytes) {
+				break;
+			}
+		}
+
+		if (append) {
+			chars.push(c);
+		}
+
+		i++;
+	}
+
+	// Convert char code array back to string.
+	return chars.map(function (x) {
+		return String.fromCharCode(x);
+	}).join('');
+};
+
+function writeASCIIString(stream, string, bytes) {
+	var length = bytes || string.length + 1;  // + 1 for NULL
+
+	for (var i = 0; i < length; i++) {
+		stream.writeUint8(i < string.length ? string.charCodeAt(i) : 0x00);
+	}
+}
+
 var BitStream = function (source, byteOffset, byteLength) {
 	var isBuffer = source instanceof ArrayBuffer ||
 		(typeof(Buffer) !== 'undefined' && source instanceof Buffer);
 
-	if (!(source instanceof BitView) && !isBuffer) {
-		throw new Error('Must specify a valid BitView, ArrayBuffer or Buffer');
+	if (!(source instanceof BitView) && !(source instanceof DataView) && !isBuffer) {
+		throw new Error('Must specify a valid BitView, DataView, ArrayBuffer or Buffer');
 	}
 
 	if (isBuffer) {
@@ -160,6 +244,7 @@ var BitStream = function (source, byteOffset, byteLength) {
 	} else {
 		this._view = source;
 	}
+
 	this._index = 0;
 };
 
@@ -173,7 +258,7 @@ Object.defineProperty(BitStream.prototype, 'byteIndex', {
 });
 
 Object.defineProperty(BitStream.prototype, 'buffer', {
-	get: function () { return this.view.buffer; },
+	get: function () { return this._view.buffer; },
 	enumerable: true,
 	configurable: false
 });
@@ -183,21 +268,6 @@ Object.defineProperty(BitStream.prototype, 'view', {
 	enumerable: true,
 	configurable: false
 });
-
-var reader = function (name, bits) {
-	return function () {
-		var val = this._view[name](this._index);
-		this._index += bits;
-		return val;
-	};
-};
-
-var writer = function (name, bits) {
-	return function (value) {
-		this._view[name](this._index, value);
-		this._index += bits;
-	};
-};
 
 BitStream.prototype.readBits = function (bits, signed) {
 	var val = this._view.getBits(this._index, bits, signed);
@@ -229,45 +299,12 @@ BitStream.prototype.writeFloat32 = writer('setFloat32', 32);
 BitStream.prototype.writeFloat64 = writer('setFloat64', 64);
 
 BitStream.prototype.readASCIIString = function (bytes) {
-	var i = 0;
-	var chars = [];
-	var append = true;
-
-	// Read while we still have space available, or until we've
-	// hit the fixed byte length passed in.
-	while (!bytes || (bytes && i < bytes)) {
-		var c = this.readUint8();
-
-		// Stop appending chars once we hit 0x00
-		if (c === 0x00) {
-			append = false;
-
-			// If we don't have a fixed length to read, break out now.
-			if (!bytes) {
-				break;
-			}
-		}
-
-		if (append) {
-			chars.push(c);
-		}
-
-		i++;
-	}
-
-	// Convert char code array back to string.
-	return chars.map(function (x) {
-		return String.fromCharCode(x);
-	}).join('');
+	return readASCIIString(this, bytes);
 };
 
-BitStream.prototype.writeASCIIString = function(string, bytes) {
-	var length = bytes || string.length + 1;  // + 1 for NULL
-
-	for (var i = 0; i < length; i++) {
-		this.writeUint8(i < string.length ? string.charCodeAt(i) : 0x00);
-	}
-}
+BitStream.prototype.writeASCIIString = function (string, bytes) {
+	writeASCIIString(this, string, bytes);
+};
 
 // AMD / RequireJS
 if (typeof define !== 'undefined' && define.amd) {
@@ -284,11 +321,6 @@ else if (typeof module !== 'undefined' && module.exports) {
 		BitView: BitView,
 		BitStream: BitStream
 	};
-}
-// included directly via <script> tag
-else {
-	root.BitView = BitView;
-	root.BitStream = BitStream;
 }
 
 }(this));
