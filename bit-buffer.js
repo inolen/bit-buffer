@@ -10,7 +10,7 @@
  **********************************************************/
 var BitView = function (source, byteOffset, byteLength) {
 	var isBuffer = source instanceof ArrayBuffer ||
-		(typeof(Buffer) !== 'undefined' && source instanceof Buffer);
+		(typeof Buffer !== 'undefined' && source instanceof Buffer);
 
 	if (!isBuffer) {
 		throw new Error('Must specify a valid ArrayBuffer or Buffer.');
@@ -221,7 +221,7 @@ function readASCIIString(stream, bytes) {
 	return chars.map(function (x) {
 		return String.fromCharCode(x);
 	}).join('');
-};
+}
 
 function writeASCIIString(stream, string, bytes) {
 	var length = bytes || string.length + 1;  // + 1 for NULL
@@ -233,10 +233,10 @@ function writeASCIIString(stream, string, bytes) {
 
 var BitStream = function (source, byteOffset, byteLength) {
 	var isBuffer = source instanceof ArrayBuffer ||
-		(typeof(Buffer) !== 'undefined' && source instanceof Buffer);
+		(typeof Buffer !== 'undefined' && source instanceof Buffer);
 
-	if (!(source instanceof BitView) && !(source instanceof DataView) && !isBuffer) {
-		throw new Error('Must specify a valid BitView, DataView, ArrayBuffer or Buffer');
+	if (!(source instanceof BitView) && !isBuffer) {
+		throw new Error('Must specify a valid BitView, ArrayBuffer or Buffer');
 	}
 
 	if (isBuffer) {
