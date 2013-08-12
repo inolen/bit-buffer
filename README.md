@@ -1,5 +1,4 @@
-BitBuffer
-==========
+# BitBuffer
 
 BitBuffer provides two objects, `BitView` and `BitStream`. `BitView` is a wrapper for ArrayBuffers, similar to JavaScript's [DataView](https://developer.mozilla.org/en-US/docs/JavaScript/Typed_arrays/DataView), but with support for bit-level reads and writes. `BitStream` is a wrapper for a `BitView` used to help maintain your current buffer position, as well as to provide higher-level read / write operations such as for ASCII strings.
 
@@ -89,3 +88,8 @@ Reads bytes from the underlying view at the current index until either `bytes` c
 #### writeASCIIString(string, optional bytes)
 
 Writes a string followed by a NULL character to the underlying view starting at the current index. If the string is longer than `bytes` it will be truncated, and if it is shorter 0x00 will be written in its place.
+
+
+## license
+
+MIT
