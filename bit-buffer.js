@@ -19,8 +19,7 @@ var BitView = function (source, byteOffset, byteLength) {
 	byteOffset = byteOffset || 0;
 	byteLength = byteLength || source.byteLength /* ArrayBuffer */ || source.length /* Buffer */;
 
-	this._buffer = source;
-	this._view = new Uint8Array(this._buffer, byteOffset, byteLength);
+	this._view = new Uint8Array(source, byteOffset, byteLength);
 };
 
 // Used to massage fp values so we can operate on them
@@ -28,7 +27,7 @@ var BitView = function (source, byteOffset, byteLength) {
 BitView._scratch = new DataView(new ArrayBuffer(8));
 
 Object.defineProperty(BitView.prototype, 'buffer', {
-	get: function () { return this._buffer; },
+	get: function () { return new Buffer(this._view); },
 	enumerable: true,
 	configurable: false
 });
@@ -258,7 +257,7 @@ Object.defineProperty(BitStream.prototype, 'byteIndex', {
 });
 
 Object.defineProperty(BitStream.prototype, 'buffer', {
-	get: function () { return this._view.buffer; },
+	get: function () { return new Buffer(this._view); },
 	enumerable: true,
 	configurable: false
 });
