@@ -231,7 +231,11 @@ function readString(stream, bytes, utf8) {
 
 	var string = String.fromCharCode.apply(null, chars);
 	if (utf8) {
-		return decodeURIComponent(escape(string)); // https://stackoverflow.com/a/17192845
+		try {
+			return decodeURIComponent(escape(string)); // https://stackoverflow.com/a/17192845
+		} catch (e) {
+			return string;
+		}
 	} else {
 		return string;
 	}
