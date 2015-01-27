@@ -114,6 +114,9 @@ BitView.prototype.setBits = function (offset, value, bits) {
 	}
 };
 
+BitView.prototype.getBoolean = function (offset) {
+	return this.getBits(offset, 1, false) !== 0;
+};
 BitView.prototype.getInt8 = function (offset) {
 	return this.getBits(offset, 8, true);
 };
@@ -143,6 +146,9 @@ BitView.prototype.getFloat64 = function (offset) {
 	return BitView._scratch.getFloat64(0);
 };
 
+BitView.prototype.setBoolean = function (offset, value) {
+	this.setBits(offset, value ? 1 : 0, 1);
+};
 BitView.prototype.setInt8  =
 BitView.prototype.setUint8 = function (offset, value) {
 	this.setBits(offset, value, 8);
@@ -279,6 +285,7 @@ BitStream.prototype.writeBits = function (value, bits) {
 	this._index += bits;
 };
 
+BitStream.prototype.readBoolean = reader('getBoolean', 1);
 BitStream.prototype.readInt8 = reader('getInt8', 8);
 BitStream.prototype.readUint8 = reader('getUint8', 8);
 BitStream.prototype.readInt16 = reader('getInt16', 16);
@@ -288,6 +295,7 @@ BitStream.prototype.readUint32 = reader('getUint32', 32);
 BitStream.prototype.readFloat32 = reader('getFloat32', 32);
 BitStream.prototype.readFloat64 = reader('getFloat64', 64);
 
+BitStream.prototype.writeBoolean = writer('setBoolean', 1);
 BitStream.prototype.writeInt8 = writer('setInt8', 8);
 BitStream.prototype.writeUint8 = writer('setUint8', 8);
 BitStream.prototype.writeInt16 = writer('setInt16', 16);

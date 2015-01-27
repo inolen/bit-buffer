@@ -180,4 +180,38 @@ suite('BitBuffer', function () {
 
 		assert(exception);
 	});
+
+	test('Get boolean', function () {
+		bv.setUint8(0, 1);
+
+		assert(bv.getBoolean(0));
+
+		bv.setUint8(0, 0);
+		assert(!bv.getBoolean(0));
+	});
+
+	test('Set boolean', function () {
+		bv.setBoolean(0, true);
+
+		assert(bv.getBoolean(0));
+
+		bv.setBoolean(0, false);
+
+		assert(!bv.getBoolean(0));
+	});
+
+	test('Read boolean', function () {
+		bv.setBits(0, 1, 1);
+		bv.setBits(1, 0, 1);
+
+		assert(bsr.readBoolean());
+		assert(!bsr.readBoolean());
+	});
+
+	test('Write boolean', function () {
+		bsr.writeBoolean(true);
+		assert(bv.getBits(0, 1, false) === 1);
+		bsr.writeBoolean(false);
+		assert(bv.getBits(1, 1, false) === 0);
+	});
 });
