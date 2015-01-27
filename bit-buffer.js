@@ -196,6 +196,14 @@ var writer = function (name, size) {
 };
 
 function readASCIIString(stream, bytes) {
+	return readString(stream, bytes, false);
+}
+
+function readUTF8String(stream, bytes) {
+	return readString(stream, bytes, true);
+}
+
+function readString(stream, bytes, utf8) {
 	var i = 0;
 	var chars = [];
 	var append = true;
@@ -214,7 +222,6 @@ function readASCIIString(stream, bytes) {
 				break;
 			}
 		}
-
 		if (append) {
 			chars.push(c);
 		}
@@ -222,10 +229,12 @@ function readASCIIString(stream, bytes) {
 		i++;
 	}
 
-	// Convert char code array back to string.
-	return chars.map(function (x) {
-		return String.fromCharCode(x);
-	}).join('');
+	var string = String.fromCharCode.apply(null, chars);
+	if (utf8) {
+		return decodeURIComponent(escape(string)); // https://stackoverflow.com/a/17192845
+	} else {
+		return string;
+	}
 }
 
 function writeASCIIString(stream, string, bytes) {
@@ -234,6 +243,43 @@ function writeASCIIString(stream, string, bytes) {
 	for (var i = 0; i < length; i++) {
 		stream.writeUint8(i < string.length ? string.charCodeAt(i) : 0x00);
 	}
+}
+
+function writeUTF8String(stream, string, bytes) {
+	var byteArray = stringToByteArray(string);
+
+	var length = bytes || byteArray.length + 1;  // + 1 for NULL
+	for (var i = 0; i < length; i++) {
+		stream.writeUint8(i < byteArray.length ? byteArray[i] : 0x00);
+	}
+}
+
+function stringToByteArray(str) { // https://gist.github.com/volodymyr-mykhailyk/2923227
+	var b = [], i, unicode;
+	for (i = 0; i < str.length; i++) {
+		unicode = str.charCodeAt(i);
+		// 0x00000000 - 0x0000007f -> 0xxxxxxx
+		if (unicode <= 0x7f) {
+			b.push(unicode);
+			// 0x00000080 - 0x000007ff -> 110xxxxx 10xxxxxx
+		} else if (unicode <= 0x7ff) {
+			b.push((unicode >> 6) | 0xc0);
+			b.push((unicode & 0x3F) | 0x80);
+			// 0x00000800 - 0x0000ffff -> 1110xxxx 10xxxxxx 10xxxxxx
+		} else if (unicode <= 0xffff) {
+			b.push((unicode >> 12) | 0xe0);
+			b.push(((unicode >> 6) & 0x3f) | 0x80);
+			b.push((unicode & 0x3f) | 0x80);
+			// 0x00010000 - 0x001fffff -> 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+		} else {
+			b.push((unicode >> 18) | 0xf0);
+			b.push(((unicode >> 12) & 0x3f) | 0x80);
+			b.push(((unicode >> 6) & 0x3f) | 0x80);
+			b.push((unicode & 0x3f) | 0x80);
+		}
+	}
+
+	return b;
 }
 
 var BitStream = function (source, byteOffset, byteLength) {
@@ -309,8 +355,16 @@ BitStream.prototype.readASCIIString = function (bytes) {
 	return readASCIIString(this, bytes);
 };
 
+BitStream.prototype.readUTF8String = function (bytes) {
+	return readUTF8String(this, bytes);
+};
+
 BitStream.prototype.writeASCIIString = function (string, bytes) {
 	writeASCIIString(this, string, bytes);
+};
+
+BitStream.prototype.writeUTF8String = function (string, bytes) {
+	writeUTF8String(this, string, bytes);
 };
 
 // AMD / RequireJS
