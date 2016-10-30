@@ -38,10 +38,6 @@ Object.defineProperty(BitView.prototype, 'byteLength', {
 	configurable: false
 });
 
-BitView.prototype._getBit = function (offset) {
-	return this._view[offset >> 3] >> (offset & 7) & 0x1;
-};
-
 BitView.prototype._setBit = function (offset, on) {
 	if (on) {
 		this._view[offset >> 3] |= 1 << (offset & 7);
