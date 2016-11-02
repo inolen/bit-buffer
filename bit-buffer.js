@@ -50,7 +50,7 @@ BitView.prototype._setBit = function (offset, on) {
 	}
 };
 
-BitView.prototype.getBits = function (offset, bits, signed) {
+BitView.prototype.getBits = function (offset, bits, signed, bigEndian) {
 	var available = (this._view.length * 8 - offset);
 
 	if (bits > available) {
@@ -61,17 +61,32 @@ BitView.prototype.getBits = function (offset, bits, signed) {
 	for (var i = 0; i < bits;) {
 		var read;
 
-		// Read an entire byte if we can.
-		if ((bits - i) >= 8 && ((offset & 7) === 0)) {
-			value |= (this._view[offset >> 3] << i);
-			read = 8;
-		} else {
-			value |= (this._getBit(offset) << i);
-			read = 1;
-		}
+		if (bigEndian) {
+			// Read an entire byte if we can.
+			if ((bits - i) >= 8 && ((offset & 7) === 0)) {
+				value |= (this._view[offset >> 3] << i);
+				offset -= 8;
+				read = 8;
+			} else {
+				value |= (this._getBit(offset) << i);
+				offset += 1;
+				read = 1;
+			}
 
-		offset += read;
-		i += read;
+			i += read;
+		} else {
+			// Read an entire byte if we can.
+			if ((bits - i) >= 8 && ((offset & 7) === 0)) {
+				value |= (this._view[offset >> 3] << i);
+				read = 8;
+			} else {
+				value |= (this._getBit(offset) << i);
+				read = 1;
+			}
+
+			offset += read;
+			i += read;
+		}
 	}
 
 	if (signed) {

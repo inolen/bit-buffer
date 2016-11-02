@@ -17,9 +17,9 @@ bb.buffer  // Underlying ArrayBuffer.
 
 Default constructor, takes in a single argument of an ArrayBuffer. Optional are the `byteOffset` and `byteLength` arguments to offset and truncate the view's representation of the buffer.
 
-### getBits(offset, bits, signed)
+### getBits(offset, bits, signed, bigEndian)
 
-Reads `bits` number of bits starting at `offset`, twiddling the bits appropriately to return a proper 32-bit signed or unsigned value. NOTE: While JavaScript numbers are 64-bit floating-point values, we don't bother with anything other than the first 32 bits.
+Reads `bits` number of bits starting at `offset`, twiddling the bits appropriately to return a proper 32-bit signed or unsigned value, little or big endian. NOTE: While JavaScript numbers are 64-bit floating-point values, we don't bother with anything other than the first 32 bits.
 
 ### getInt8, getUint8, getInt16, getUint16, getInt32, getUint32(offset)
 
