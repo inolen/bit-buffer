@@ -180,4 +180,75 @@ suite('BitBuffer', function () {
 
 		assert(exception);
 	});
+
+	test('Get boolean', function () {
+		bv.setUint8(0, 1);
+
+		assert(bv.getBoolean(0));
+
+		bv.setUint8(0, 0);
+		assert(!bv.getBoolean(0));
+	});
+
+	test('Set boolean', function () {
+		bv.setBoolean(0, true);
+
+		assert(bv.getBoolean(0));
+
+		bv.setBoolean(0, false);
+
+		assert(!bv.getBoolean(0));
+	});
+
+	test('Read boolean', function () {
+		bv.setBits(0, 1, 1);
+		bv.setBits(1, 0, 1);
+
+		assert(bsr.readBoolean());
+		assert(!bsr.readBoolean());
+	});
+
+	test('Write boolean', function () {
+		bsr.writeBoolean(true);
+		assert(bv.getBits(0, 1, false) === 1);
+		bsr.writeBoolean(false);
+		assert(bv.getBits(1, 1, false) === 0);
+	});
+
+	test('Read / write UTF8 string, only ASCII characters', function () {
+		var str = 'foobar';
+
+		bsw.writeUTF8String(str);
+		assert(bsw.byteIndex === str.length + 1);  // +1 for 0x00
+
+		assert(bsr.readUTF8String() === str);
+		assert(bsr.byteIndex === str.length + 1);
+	});
+
+	test('Read / write UTF8 string, non ASCII characters', function () {
+		var str = '日本語';
+
+		var bytes = [
+			0xE6,
+			0x97,
+			0xA5,
+			0xE6,
+			0x9C,
+			0xAC,
+			0xE8,
+			0xAA,
+			0x9E
+		];
+
+		bsw.writeUTF8String(str);
+
+		for (var i = 0; i < bytes.length; i++) {
+			assert.equal(bytes[i], bv.getBits(i * 8, 8));
+		}
+
+		assert.equal(bsw.byteIndex, bytes.length + 1);  // +1 for 0x00
+
+		assert.equal(str, bsr.readUTF8String());
+		assert.equal(bsr.byteIndex, bytes.length + 1);
+	});
 });
