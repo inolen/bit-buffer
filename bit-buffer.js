@@ -38,10 +38,6 @@ Object.defineProperty(BitView.prototype, 'byteLength', {
 	configurable: false
 });
 
-BitView.prototype._getBit = function (offset) {
-	return this._view[offset >> 3] >> (offset & 7) & 0x1;
-};
-
 BitView.prototype._setBit = function (offset, on) {
 	if (on) {
 		this._view[offset >> 3] |= 1 << (offset & 7);
@@ -59,16 +55,18 @@ BitView.prototype.getBits = function (offset, bits, signed) {
 
 	var value = 0;
 	for (var i = 0; i < bits;) {
-		var read;
+		var remaining = bits - i;
+		var bitOffset = offset & 7;
+		var currentByte = this._view[offset >> 3];
 
-		// Read an entire byte if we can.
-		if ((bits - i) >= 8 && ((offset & 7) === 0)) {
-			value |= (this._view[offset >> 3] << i);
-			read = 8;
-		} else {
-			value |= (this._getBit(offset) << i);
-			read = 1;
-		}
+		// the max number of bits we can read from the current byte
+		var read = Math.min(remaining, 8 - bitOffset);
+
+		// create a mask with the correct bit width
+		var mask = (1 << read) - 1;
+		// shift the bits we want to the start of the byte and mask of the rest
+		var readBits = (currentByte >> bitOffset) & mask;
+		value |= readBits << i;
 
 		offset += read;
 		i += read;
