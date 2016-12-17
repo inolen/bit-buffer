@@ -251,4 +251,31 @@ suite('BitBuffer', function () {
 		assert.equal(str, bsr.readUTF8String());
 		assert.equal(bsr.byteIndex, bytes.length + 1);
 	});
+
+	test('readBitStream', function () {
+		bsw.writeBits(0xF0, 8); //0b11110000
+		bsw.writeBits(0xF1, 8); //0b11110001
+		bsr.readBits(3); //offset
+		var slice = bsr.readBitStream(8);
+		assert.equal(slice.readBits(6), 0x3E); //0b111110
+
+		assert.equal(bsr._index, 11);
+	});
+
+	test('readBitStream overflow', function () {
+		bsw.writeBits(0xF0, 8); //0b11110000
+		bsw.writeBits(0xF1, 8); //0b11110001
+		bsr.readBits(3); //offset
+		var slice = bsr.readBitStream(4);
+
+		var exception = false;
+
+		try {
+			slice.readUint8();
+		} catch (e) {
+			exception = true;
+		}
+
+		assert(exception);
+	});
 });

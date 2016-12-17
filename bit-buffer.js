@@ -180,6 +180,9 @@ BitView.prototype.setFloat64 = function (offset, value) {
  **********************************************************/
 var reader = function (name, size) {
 	return function () {
+		if (this._index + size > this.length) {
+			throw new Error('Trying to read past the end of the stream');
+		}
 		var val = this._view[name](this._index);
 		this._index += size;
 		return val;
@@ -205,10 +208,14 @@ function readString(stream, bytes, utf8) {
 	var i = 0;
 	var chars = [];
 	var append = true;
+	var fixedLength = !!bytes;
+	if (!bytes) {
+		bytes = Math.floor((stream.length - stream._index) / 8);
+	}
 
 	// Read while we still have space available, or until we've
 	// hit the fixed byte length passed in.
-	while (!bytes || (bytes && i < bytes)) {
+	while (i < bytes) {
 		var c = stream.readUint8();
 
 		// Stop appending chars once we hit 0x00
@@ -216,7 +223,7 @@ function readString(stream, bytes, utf8) {
 			append = false;
 
 			// If we don't have a fixed length to read, break out now.
-			if (!bytes) {
+			if (!fixedLength) {
 				break;
 			}
 		}
@@ -299,6 +306,7 @@ var BitStream = function (source, byteOffset, byteLength) {
 	}
 
 	this._index = 0;
+	this.length = this._view.byteLength * 8;
 };
 
 Object.defineProperty(BitStream.prototype, 'byteIndex', {
@@ -367,6 +375,13 @@ BitStream.prototype.writeASCIIString = function (string, bytes) {
 
 BitStream.prototype.writeUTF8String = function (string, bytes) {
 	writeUTF8String(this, string, bytes);
+};
+BitStream.prototype.readBitStream = function(bitLength) {
+	var slice = new BitStream(this._view);
+	slice._index = this._index;
+	slice.length = slice._index + bitLength;
+	this._index += bitLength;
+	return slice;
 };
 
 // AMD / RequireJS
