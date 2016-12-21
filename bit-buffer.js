@@ -324,6 +324,12 @@ Object.defineProperty(BitStream.prototype, 'length', {
 	configurable: true
 });
 
+Object.defineProperty(BitStream.prototype, 'bitsLeft', {
+	get: function () {return this._length - this._index},
+	enumerable  : true,
+	configurable: true
+});
+
 Object.defineProperty(BitStream.prototype, 'byteIndex', {
 	// Ceil the returned value, over compensating for the amount of
 	// bits written to the stream.

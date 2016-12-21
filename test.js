@@ -261,8 +261,10 @@ suite('BitBuffer', function () {
 		assert.equal(9, slice._index);
 		assert.equal(6, slice.index);
 		assert.equal(8, slice.length);
+		assert.equal(2, slice.bitsLeft);
 
 		assert.equal(bsr._index, 11);
+		assert.equal((64 * 8) - 11, bsr.bitsLeft);
 	});
 
 	test('readBitStream overflow', function () {
