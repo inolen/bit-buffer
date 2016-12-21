@@ -180,7 +180,7 @@ BitView.prototype.setFloat64 = function (offset, value) {
  **********************************************************/
 var reader = function (name, size) {
 	return function () {
-		if (this._index + size > this.length) {
+		if (this._index + size > this._length) {
 			throw new Error('Trying to read past the end of the stream');
 		}
 		var val = this._view[name](this._index);
@@ -210,7 +210,7 @@ function readString(stream, bytes, utf8) {
 	var append = true;
 	var fixedLength = !!bytes;
 	if (!bytes) {
-		bytes = Math.floor((stream.length - stream._index) / 8);
+		bytes = Math.floor((stream._length - stream._index) / 8);
 	}
 
 	// Read while we still have space available, or until we've
@@ -307,13 +307,20 @@ var BitStream = function (source, byteOffset, byteLength) {
 
 	this._index = 0;
 	this._startIndex = 0;
-	this.length = this._view.byteLength * 8;
+	this._length = this._view.byteLength * 8;
 };
 
 Object.defineProperty(BitStream.prototype, 'index', {
 	get: function () { return this._index - this._startIndex },
 	set: function (val) { this._index = val + this._startIndex },
 	enumerable: true,
+	configurable: true
+});
+
+Object.defineProperty(BitStream.prototype, 'length', {
+	get: function () {return this._length - this._startIndex},
+	set: function (val) {this._length = val + this._startIndex},
+	enumerable  : true,
 	configurable: true
 });
 
@@ -388,7 +395,7 @@ BitStream.prototype.readBitStream = function(bitLength) {
 	var slice = new BitStream(this._view);
 	slice._startIndex = this._index;
 	slice._index = this._index;
-	slice.length = slice._index + bitLength;
+	slice.length = bitLength;
 	this._index += bitLength;
 	return slice;
 };

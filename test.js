@@ -260,6 +260,7 @@ suite('BitBuffer', function () {
 		assert.equal(slice.readBits(6), 0x3E); //0b111110
 		assert.equal(9, slice._index);
 		assert.equal(6, slice.index);
+		assert.equal(8, slice.length);
 
 		assert.equal(bsr._index, 11);
 	});
