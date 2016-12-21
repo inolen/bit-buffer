@@ -3,6 +3,7 @@
   "version": "0.0.3",
   "description": "Bit-level reads and writes for ArrayBuffers",
   "main": "bit-buffer.js",
+  "types": "./bit-buffer.d.ts",
   "directories": {
     "test": "test"
   },

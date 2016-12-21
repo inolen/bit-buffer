@@ -306,8 +306,16 @@ var BitStream = function (source, byteOffset, byteLength) {
 	}
 
 	this._index = 0;
+	this._startIndex = 0;
 	this.length = this._view.byteLength * 8;
 };
+
+Object.defineProperty(BitStream.prototype, 'index', {
+	get: function () { return this._index - this._startIndex },
+	set: function (val) { this._index = val + this._startIndex },
+	enumerable: true,
+	configurable: true
+});
 
 Object.defineProperty(BitStream.prototype, 'byteIndex', {
 	// Ceil the returned value, over compensating for the amount of
@@ -378,6 +386,7 @@ BitStream.prototype.writeUTF8String = function (string, bytes) {
 };
 BitStream.prototype.readBitStream = function(bitLength) {
 	var slice = new BitStream(this._view);
+	slice._startIndex = this._index;
 	slice._index = this._index;
 	slice.length = slice._index + bitLength;
 	this._index += bitLength;
