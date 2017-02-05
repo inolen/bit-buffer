@@ -63,5 +63,7 @@ declare module 'bit-buffer' {
 		writeUTF8String(data: string, length?: number);
 
 		readBitStream(length: number): BitStream;
+
+		readArrayBuffer(byteLength: number): ArrayBuffer;
 	}
 }

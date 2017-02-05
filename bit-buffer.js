@@ -168,6 +168,13 @@ BitView.prototype.setFloat64 = function (offset, value) {
 	this.setBits(offset, BitView._scratch.getUint32(0), 32);
 	this.setBits(offset+32, BitView._scratch.getUint32(4), 32);
 };
+BitView.prototype.getArrayBuffer = function (offset, byteLength) {
+	var buffer = new Uint8Array(byteLength);
+	for (var i = 0; i < byteLength; i++) {
+		buffer[i] = this.getUint8(offset + (i * 8));
+	}
+	return buffer;
+};
 
 /**********************************************************
  *
@@ -404,6 +411,11 @@ BitStream.prototype.readBitStream = function(bitLength) {
 	slice.length = bitLength;
 	this._index += bitLength;
 	return slice;
+};
+BitStream.prototype.readArrayBuffer = function(byteLength) {
+	var buffer = this._view.getArrayBuffer(this._index, byteLength);
+	this._index += (byteLength * 8);
+	return buffer;
 };
 
 // AMD / RequireJS

@@ -283,4 +283,18 @@ suite('BitBuffer', function () {
 
 		assert(exception);
 	});
+
+	test('readArrayBuffer', function () {
+		bsw.writeBits(0xF0, 8); //0b11110000
+		bsw.writeBits(0xF1, 8); //0b11110001
+		bsw.writeBits(0xF0, 8); //0b11110000
+		bsr.readBits(3); //offset
+
+		var buffer = bsr.readArrayBuffer(2);
+
+		assert.equal(0x3E, buffer[0]); //0b00111110
+		assert.equal(0x1E, buffer[1]); //0b00011110
+
+		assert.equal(3 + (2 * 8), bsr._index);
+	})
 });
