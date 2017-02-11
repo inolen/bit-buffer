@@ -64,6 +64,6 @@ declare module 'bit-buffer' {
 
 		readBitStream(length: number): BitStream;
 
-		readArrayBuffer(byteLength: number): ArrayBuffer;
+		readArrayBuffer(byteLength: number): Uint8Array;
 	}
 }
