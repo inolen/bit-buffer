@@ -212,6 +212,9 @@ function readUTF8String(stream, bytes) {
 }
 
 function readString(stream, bytes, utf8) {
+	if (bytes === 0) {
+		return '';
+	}
 	var i = 0;
 	var chars = [];
 	var append = true;

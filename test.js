@@ -157,6 +157,16 @@ suite('BitBuffer', function () {
 		assert(bsr.byteIndex === str.length + 1);
 	});
 
+	test('Read ASCII string, 0 length', function () {
+		var str = 'foobar';
+
+		bsw.writeASCIIString(str);
+		assert(bsw.byteIndex === str.length + 1);  // +1 for 0x00
+
+		assert(bsr.readASCIIString(0) === '');
+		assert(bsr.byteIndex === 0);
+	});
+
 	test('Read overflow', function () {
 		var exception = false;
 
