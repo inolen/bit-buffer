@@ -1,17 +1,11 @@
 declare module 'bit-buffer' {
-	export class BitView {
-		length: number;
-		_view: ArrayBuffer;
-	}
-
 	export class BitStream {
-		constructor(source: ArrayBuffer|BitView, byteOffset?: number, byteLength?: number)
+		constructor(source: ArrayBuffer, byteOffset?: number, byteLength?: number)
 
 		byteIndex: number;
 		length: number;
 		bitsLeft: number;
 		buffer: ArrayBuffer;
-		_view: BitView;
 		index: number;
 
 		readBits(bits: number, signed?: boolean): number;
