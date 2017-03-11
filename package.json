@@ -21,12 +21,15 @@
     "bits"
   ],
   "author": "Anthony Pesch",
-  "contributors": ["Robin Appelman"],
+  "contributors": [
+    "Robin Appelman"
+  ],
   "license": "MIT",
   "gitHead": "cd4417237bed1f22dd5adfd8a6b961ea7234d9c9",
   "readmeFilename": "README.md",
   "devDependencies": {
     "@types/node": "^7.0.5",
+    "jshint": "^2.9.4",
     "mocha": "^3.2.0"
   }
 }
