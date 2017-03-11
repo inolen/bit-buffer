@@ -1,6 +1,6 @@
 var assert = require('assert'),
-	BitView = require('../bit-buffer').BitView,
-	BitStream = require('../bit-buffer').BitStream;
+	BitView = require('./bit-buffer').BitView,
+	BitStream = require('./bit-buffer').BitStream;
 
 suite('BitBuffer', function () {
 	var array, bv, bsw, bsr;
