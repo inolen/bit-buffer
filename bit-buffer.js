@@ -321,21 +321,21 @@ var BitStream = function (source, byteOffset, byteLength) {
 };
 
 Object.defineProperty(BitStream.prototype, 'index', {
-	get: function () { return this._index - this._startIndex },
-	set: function (val) { this._index = val + this._startIndex },
+	get: function () { return this._index - this._startIndex; },
+	set: function (val) { this._index = val + this._startIndex; },
 	enumerable: true,
 	configurable: true
 });
 
 Object.defineProperty(BitStream.prototype, 'length', {
-	get: function () {return this._length - this._startIndex},
-	set: function (val) {this._length = val + this._startIndex},
+	get: function () { return this._length - this._startIndex; },
+	set: function (val) { this._length = val + this._startIndex; },
 	enumerable  : true,
 	configurable: true
 });
 
 Object.defineProperty(BitStream.prototype, 'bitsLeft', {
-	get: function () {return this._length - this._index},
+	get: function () { return this._length - this._index; },
 	enumerable  : true,
 	configurable: true
 });
@@ -350,7 +350,7 @@ Object.defineProperty(BitStream.prototype, 'byteIndex', {
 });
 
 Object.defineProperty(BitStream.prototype, 'buffer', {
-	get: function () { return this._view.buffer },
+	get: function () { return this._view.buffer; },
 	enumerable: true,
 	configurable: false
 });
