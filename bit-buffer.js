@@ -27,7 +27,9 @@ var BitView = function (source, byteOffset, byteLength) {
 BitView._scratch = new DataView(new ArrayBuffer(8));
 
 Object.defineProperty(BitView.prototype, 'buffer', {
-	get: function () { return new Buffer(this._view); },
+	get: function () {
+		return new Buffer(this._view);
+	},
 	enumerable: true,
 	configurable: false
 });
@@ -350,7 +352,7 @@ Object.defineProperty(BitStream.prototype, 'byteIndex', {
 });
 
 Object.defineProperty(BitStream.prototype, 'buffer', {
-	get: function () { return new Buffer(this._view); },
+	get: function () { return this._view.buffer },
 	enumerable: true,
 	configurable: false
 });

@@ -7,7 +7,7 @@ declare module 'bit-buffer' {
 		byteIndex: number;
 		length: number;
 		bitsLeft: number;
-		buffer: ArrayBuffer;
+		buffer: Buffer;
 		index: number;
 
 		readBits(bits: number, signed?: boolean): number;

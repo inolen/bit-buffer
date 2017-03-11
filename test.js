@@ -306,5 +306,21 @@ suite('BitBuffer', function () {
 		assert.equal(0x1E, buffer[1]); //0b00011110
 
 		assert.equal(3 + (2 * 8), bsr._index);
-	})
+	});
+
+	test('Get buffer from view', function() {
+		bv.setBits(0, 0xFFFFFFFF, 32);
+		var buffer = bv.buffer;
+
+		assert.equal(64, buffer.length);
+		assert.equal(0xFFFF, buffer.readUInt16LE(0));
+	});
+
+	test('Get buffer from stream', function () {
+		bsw.writeBits(0xFFFFFFFF, 32);
+		var buffer = bsr.buffer;
+
+		assert.equal(64, buffer.length);
+		assert.equal(0xFFFF, buffer.readUInt16LE(0));
+	});
 });
