@@ -1,6 +1,8 @@
 declare module 'bit-buffer' {
+	import {Buffer} from 'buffer';
+
 	export class BitStream {
-		constructor(source: ArrayBuffer, byteOffset?: number, byteLength?: number)
+		constructor(source: ArrayBuffer | Buffer, byteOffset?: number, byteLength?: number)
 
 		byteIndex: number;
 		length: number;
