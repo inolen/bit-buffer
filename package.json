@@ -23,5 +23,8 @@
   "author": "Anthony Pesch",
   "license": "MIT",
   "gitHead": "cd4417237bed1f22dd5adfd8a6b961ea7234d9c9",
-  "readmeFilename": "README.md"
+  "readmeFilename": "README.md",
+  "devDependencies": {
+    "mocha": "^3.2.0"
+  }
 }

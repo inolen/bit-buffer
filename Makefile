@@ -6,4 +6,4 @@ lint:
 	jshint bit-buffer.js
 
 test:
-	mocha --ui tdd
+	node node_modules/.bin/mocha --ui tdd
