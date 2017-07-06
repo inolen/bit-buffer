@@ -97,6 +97,15 @@ suite('BitBuffer', function () {
         assert(bsr.readVarInt32() === -signed_max - 1);
     });
 
+    test('Min / max varint32zigzag', function () {
+        var signed_max = 0x7FFFFFFF;
+
+        bsw.writeVarInt32ZigZag(signed_max);
+        bsw.writeVarInt32ZigZag(-signed_max - 1);
+        assert(bsr.readVarInt32ZigZag() === signed_max);
+        assert(bsr.readVarInt32ZigZag() === -signed_max - 1);
+    });
+
 	test('Unaligned reads', function () {
 		bsw.writeBits(13, 5);
 		bsw.writeUint8(0xFF);

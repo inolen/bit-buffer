@@ -49,6 +49,12 @@ BitView.calculateVarint32Bytes = function(value) {
     else if (value < 1 << 28) return 4;
     else                      return 5;
 };
+BitView.zigZagEncode32 = function(n) {
+    return (((n |= 0) << 1) ^ (n >> 31)) >>> 0; // ref: src/google/protobuf/wire_format_lite.h
+};
+BitView.zigZagDecode32 = function(n) {
+    return ((n >>> 1) ^ -(n & 1)) | 0; // ref: src/google/protobuf/wire_format_lite.h
+};
 
 BitView.prototype._setBit = function (offset, on) {
 	if (on) {
@@ -145,20 +151,6 @@ BitView.prototype.getInt32 = function (offset) {
 BitView.prototype.getUint32 = function (offset) {
 	return this.getBits(offset, 32, false);
 };
-BitView.prototype.getVarInt32 = function (offset) {
-	var c = 0;
-	var value = 0 >>> 0;
-	var b;
-	do {
-	  b = this.getUint8(offset);
-	  offset += 8;
-	  if (c < BitView.MAX_VARINT32_BYTES)
-	    value |= (b & 0x7f) << (7*c);
-	  ++c;
-	} while ((b & 0x80) !== 0);
-	value |= 0;
-	return value;
-};
 BitView.prototype.getFloat32 = function (offset) {
 	BitView._scratch.setUint32(0, this.getUint32(offset));
 	return BitView._scratch.getFloat32(0);
@@ -168,6 +160,23 @@ BitView.prototype.getFloat64 = function (offset) {
 	// DataView offset is in bytes.
 	BitView._scratch.setUint32(4, this.getUint32(offset+32));
 	return BitView._scratch.getFloat64(0);
+};
+BitView.prototype.getVarInt32 = function (offset) {
+    var c = 0;
+    var value = 0 >>> 0;
+    var b;
+    do {
+        b = this.getUint8(offset);
+        offset += 8;
+        if (c < BitView.MAX_VARINT32_BYTES)
+            value |= (b & 0x7f) << (7*c);
+        ++c;
+    } while ((b & 0x80) !== 0);
+    value |= 0;
+    return value;
+};
+BitView.prototype.getVarInt32ZigZag = function(offset) {
+    return BitView.zigZagDecode32(this.getVarInt32(offset));
 };
 
 BitView.prototype.setBoolean = function (offset, value) {
@@ -185,17 +194,6 @@ BitView.prototype.setInt32  =
 BitView.prototype.setUint32 = function (offset, value) {
 	this.setBits(offset, value, 32);
 };
-BitView.prototype.setVarInt32 = function (offset, value) {
-    value >>>= 0;
-    var b;
-    while (value >= 0x80) {
-        b = (value & 0x7f) | 0x80;
-        this.setUint8(offset, b);
-        offset += 8;
-        value >>>= 7;
-    }
-    this.setUint8(offset, value);
-};
 BitView.prototype.setFloat32 = function (offset, value) {
 	BitView._scratch.setFloat32(0, value);
 	this.setBits(offset, BitView._scratch.getUint32(0), 32);
@@ -211,6 +209,20 @@ BitView.prototype.getArrayBuffer = function (offset, byteLength) {
 		buffer[i] = this.getUint8(offset + (i * 8));
 	}
 	return buffer;
+};
+BitView.prototype.setVarInt32 = function (offset, value) {
+    value >>>= 0;
+    var b;
+    while (value >= 0x80) {
+        b = (value & 0x7f) | 0x80;
+        this.setUint8(offset, b);
+        offset += 8;
+        value >>>= 7;
+    }
+    this.setUint8(offset, value);
+};
+BitView.prototype.setVarInt32ZigZag = function(offset, value) {
+    return this.setVarInt32(offset, BitView.zigZagEncode32(value));
 };
 
 /**********************************************************
@@ -424,9 +436,10 @@ BitStream.prototype.readInt16 = reader('getInt16', 16);
 BitStream.prototype.readUint16 = reader('getUint16', 16);
 BitStream.prototype.readInt32 = reader('getInt32', 32);
 BitStream.prototype.readUint32 = reader('getUint32', 32);
-BitStream.prototype.readVarInt32 = reader('getVarInt32', 32, true);
 BitStream.prototype.readFloat32 = reader('getFloat32', 32);
 BitStream.prototype.readFloat64 = reader('getFloat64', 64);
+BitStream.prototype.readVarInt32 = reader('getVarInt32', 32, true);
+BitStream.prototype.readVarInt32ZigZag = reader('getVarInt32ZigZag', 32, true);
 
 BitStream.prototype.writeBoolean = writer('setBoolean', 1);
 BitStream.prototype.writeInt8 = writer('setInt8', 8);
@@ -435,9 +448,10 @@ BitStream.prototype.writeInt16 = writer('setInt16', 16);
 BitStream.prototype.writeUint16 = writer('setUint16', 16);
 BitStream.prototype.writeInt32 = writer('setInt32', 32);
 BitStream.prototype.writeUint32 = writer('setUint32', 32);
-BitStream.prototype.writeVarInt32 = writer('setVarInt32', 32, true);
 BitStream.prototype.writeFloat32 = writer('setFloat32', 32);
 BitStream.prototype.writeFloat64 = writer('setFloat64', 64);
+BitStream.prototype.writeVarInt32 = writer('setVarInt32', 32, true);
+BitStream.prototype.writeVarInt32ZigZag = writer('setVarInt32ZigZag', 32, true);
 
 BitStream.prototype.readASCIIString = function (bytes) {
 	return readASCIIString(this, bytes);
