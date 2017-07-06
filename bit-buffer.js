@@ -38,6 +38,18 @@ Object.defineProperty(BitView.prototype, 'byteLength', {
 	configurable: false
 });
 
+BitView.MAX_VARINT32_BYTES = 5;
+
+BitView.calculateVarint32Bytes = function(value) {
+    // ref: src/google/protobuf/io/coded_stream.cc
+    value = value >>> 0;
+    if (value < 1 << 7 ) return 1;
+    else if (value < 1 << 14) return 2;
+    else if (value < 1 << 21) return 3;
+    else if (value < 1 << 28) return 4;
+    else                      return 5;
+};
+
 BitView.prototype._setBit = function (offset, on) {
 	if (on) {
 		this._view[offset >> 3] |= 1 << (offset & 7);
@@ -133,6 +145,20 @@ BitView.prototype.getInt32 = function (offset) {
 BitView.prototype.getUint32 = function (offset) {
 	return this.getBits(offset, 32, false);
 };
+BitView.prototype.getVarInt32 = function (offset) {
+	var c = 0;
+	var value = 0 >>> 0;
+	var b;
+	do {
+	  b = this.getUint8(offset);
+	  offset += 8;
+	  if (c < BitView.MAX_VARINT32_BYTES)
+	    value |= (b & 0x7f) << (7*c);
+	  ++c;
+	} while ((b & 0x80) !== 0);
+	value |= 0;
+	return value;
+};
 BitView.prototype.getFloat32 = function (offset) {
 	BitView._scratch.setUint32(0, this.getUint32(offset));
 	return BitView._scratch.getFloat32(0);
@@ -158,6 +184,17 @@ BitView.prototype.setUint16 = function (offset, value) {
 BitView.prototype.setInt32  =
 BitView.prototype.setUint32 = function (offset, value) {
 	this.setBits(offset, value, 32);
+};
+BitView.prototype.setVarInt32 = function (offset, value) {
+    value >>>= 0;
+    var b;
+    while (value >= 0x80) {
+        b = (value & 0x7f) | 0x80;
+        this.setUint8(offset, b);
+        offset += 8;
+        value >>>= 7;
+    }
+    this.setUint8(offset, value);
 };
 BitView.prototype.setFloat32 = function (offset, value) {
 	BitView._scratch.setFloat32(0, value);
@@ -185,21 +222,29 @@ BitView.prototype.getArrayBuffer = function (offset, byteLength) {
  * to the underlying buffer.
  *
  **********************************************************/
-var reader = function (name, size) {
+var reader = function (name, size, isVariableSize) {
 	return function () {
 		if (this._index + size > this._length) {
 			throw new Error('Trying to read past the end of the stream');
 		}
-		var val = this._view[name](this._index);
-		this._index += size;
-		return val;
+		var value = this._view[name](this._index);
+        if(!isVariableSize) {
+            this._index += size;
+        } else {
+            this._index = BitView.calculateVarint32Bytes(value) * 8;
+        }
+		return value;
 	};
 };
 
-var writer = function (name, size) {
+var writer = function (name, size, isVariableSize) {
 	return function (value) {
 		this._view[name](this._index, value);
-		this._index += size;
+		if(!isVariableSize) {
+            this._index += size;
+        } else {
+            this._index = BitView.calculateVarint32Bytes(value) * 8;
+        }
 	};
 };
 
@@ -379,6 +424,7 @@ BitStream.prototype.readInt16 = reader('getInt16', 16);
 BitStream.prototype.readUint16 = reader('getUint16', 16);
 BitStream.prototype.readInt32 = reader('getInt32', 32);
 BitStream.prototype.readUint32 = reader('getUint32', 32);
+BitStream.prototype.readVarInt32 = reader('getVarInt32', 32, true);
 BitStream.prototype.readFloat32 = reader('getFloat32', 32);
 BitStream.prototype.readFloat64 = reader('getFloat64', 64);
 
@@ -389,6 +435,7 @@ BitStream.prototype.writeInt16 = writer('setInt16', 16);
 BitStream.prototype.writeUint16 = writer('setUint16', 16);
 BitStream.prototype.writeInt32 = writer('setInt32', 32);
 BitStream.prototype.writeUint32 = writer('setUint32', 32);
+BitStream.prototype.writeVarInt32 = writer('setVarInt32', 32, true);
 BitStream.prototype.writeFloat32 = writer('setFloat32', 32);
 BitStream.prototype.writeFloat64 = writer('setFloat64', 64);
 
