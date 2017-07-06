@@ -1,6 +1,9 @@
 var assert = require('assert'),
 	BitView = require('./bit-buffer').BitView,
-	BitStream = require('./bit-buffer').BitStream;
+	BitStream = require('./bit-buffer').BitStream,
+	suite = require('mocha').suite,
+	setup = require('mocha').setup,
+	test = require('mocha').test;
 
 suite('BitBuffer', function () {
 	var array, bv, bsw, bsr;
@@ -84,6 +87,24 @@ suite('BitBuffer', function () {
 		assert(bsr.readUint32() === unsigned_max);
 		assert(bsr.readUint32() === 1);
 	});
+
+    test('Min / max varint32', function () {
+        var signed_max = 0x7FFFFFFF;
+
+        bsw.writeVarInt32(signed_max);
+        bsw.writeVarInt32(-signed_max - 1);
+        assert(bsr.readVarInt32() === signed_max);
+        assert(bsr.readVarInt32() === -signed_max - 1);
+    });
+
+    test('Min / max varint32zigzag', function () {
+        var signed_max = 0x7FFFFFFF;
+
+        bsw.writeVarInt32ZigZag(signed_max);
+        bsw.writeVarInt32ZigZag(-signed_max - 1);
+        assert(bsr.readVarInt32ZigZag() === signed_max);
+        assert(bsr.readVarInt32ZigZag() === -signed_max - 1);
+    });
 
 	test('Unaligned reads', function () {
 		bsw.writeBits(13, 5);

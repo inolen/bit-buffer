@@ -34,6 +34,15 @@ Gets 32 bits from `offset`, and coerces and returns as a proper float32 value.
 
 Gets 64 bits from `offset`, and coerces and returns as a proper float64 value.
 
+### getVarInt32(offset)
+
+Gets a VarInt32 from `offset` (used in protobuf).
+
+### getVarInt32ZigZag(offset)
+
+Gets a VarInt32ZigZag from `offset` (used in protobuf).
+
+
 ### setBits(offset, value, bits)
 
 Sets `bits` number of bits at `offset`.
@@ -49,6 +58,14 @@ Coerces a float32 to uint32 and sets at `offset`.
 ### setFloat64(offset)
 
 Coerces a float64 to two uint32s and sets at `offset`.
+
+### setVarInt32(offset)
+
+Sets a VarInt32 at `offset` (used in protobuf).
+
+### setVarInt32ZigZag(offset)
+
+Sets a VarInt32ZigZag at `offset` (used in protobuf).
 
 
 ## BitStream
@@ -116,8 +133,23 @@ Set 32 or 64 bits from `value` as floating point value at the current index, upd
 Read a single bit from the view at the current index, updating the index.
 
 #### writeBoolean(value)
-
 Write a single bit to the view at the current index, updating the index.
+
+### readVarInt32(offset)
+
+Reads a VarInt32 from `offset` (used in protobuf).
+
+### readVarInt32ZigZag(offset)
+
+Reads a VarInt32ZigZag from `offset` (used in protobuf).
+
+### writeVarInt32(offset)
+
+Writes a VarInt32 at `offset` (used in protobuf).
+
+### writeVarInt32ZigZag(offset)
+
+Writes a VarInt32ZigZag at `offset` (used in protobuf).
 
 #### readASCIIString(optional bytes), readUTF8String(optional bytes)
 

@@ -32,6 +32,10 @@ declare module 'bit-buffer' {
 
 		readFloat64(): number;
 
+		readVarInt32(): number;
+
+		readVarInt32ZigZag(): number;
+
 		writeBoolean(value: number);
 
 		writeInt8(value: number);
@@ -49,6 +53,10 @@ declare module 'bit-buffer' {
 		writeFloat32(value: number);
 
 		writeFloat64(value: number);
+
+		writeVarInt32(value: number);
+
+		writeVarInt32ZigZag(value: number);
 
 		readASCIIString(length?: number): string;
 
