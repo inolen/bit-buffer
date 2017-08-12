@@ -32,7 +32,7 @@ declare module 'bit-buffer' {
 
 		readFloat64(): number;
 
-		writeBoolean(value: number);
+		writeBoolean(value: boolean);
 
 		writeInt8(value: number);
 
