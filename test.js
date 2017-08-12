@@ -294,6 +294,38 @@ suite('BitBuffer', function () {
 		assert(exception);
 	});
 
+	test('writeBitStream', function () {
+		var sourceStream = new BitStream(new ArrayBuffer(64));
+
+		sourceStream.writeBits(0xF0, 8); //0b11110000
+		sourceStream.writeBits(0xF1, 8); //0b11110001
+		sourceStream.index = 0;
+		sourceStream.readBits(3); //offset
+		bsr.writeBitStream(sourceStream, 8);
+		assert.equal(8, bsr.index);
+		bsr.index = 0;
+		assert.equal(bsr.readBits(6), 0x3E); //0b00111110
+		assert.equal(11, sourceStream.index);
+	});
+
+	test('writeBitStream long', function () {
+		var sourceStream = new BitStream(new ArrayBuffer(64));
+
+		sourceStream.writeBits(0xF0, 8);
+		sourceStream.writeBits(0xF1, 8);
+		sourceStream.writeBits(0xF1, 8);
+		sourceStream.writeBits(0xF1, 8);
+		sourceStream.writeBits(0xF1, 8);
+		sourceStream.index = 0;
+		sourceStream.readBits(3); //offset
+		bsr.index = 3;
+		bsr.writeBitStream(sourceStream, 35);
+		assert.equal(38, bsr.index);
+		bsr.index = 3;
+		assert.equal(bsr.readBits(35), 1044266558);
+		assert.equal(38, sourceStream.index);
+	});
+
 	test('readArrayBuffer', function () {
 		bsw.writeBits(0xF0, 8); //0b11110000
 		bsw.writeBits(0xF1, 8); //0b11110001
@@ -306,6 +338,21 @@ suite('BitBuffer', function () {
 		assert.equal(0x1E, buffer[1]); //0b00011110
 
 		assert.equal(3 + (2 * 8), bsr._index);
+	});
+
+	test('writeArrayBuffer', function () {
+		var source = new Uint8Array(4);
+		source[0]=0xF0;
+		source[1]=0xF1;
+		source[2]=0xF1;
+		bsr.readBits(3); //offset
+
+		bsr.writeArrayBuffer(source.buffer, 2);
+		assert.equal(19, bsr.index);
+
+		bsr.index = 0;
+
+		assert.equal(bsr.readBits(8), 128);
 	});
 
 	test('Get buffer from view', function() {

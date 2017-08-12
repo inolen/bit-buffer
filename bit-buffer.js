@@ -415,10 +415,28 @@ BitStream.prototype.readBitStream = function(bitLength) {
 	this._index += bitLength;
 	return slice;
 };
+
+BitStream.prototype.writeBitStream = function(stream, length) {
+	if (!length) {
+		length = stream.bitsLeft;
+	}
+
+	var bitsToWrite;
+	while (length > 0) {
+		bitsToWrite = Math.min(length, 32);
+		this.writeBits(stream.readBits(bitsToWrite), bitsToWrite);
+		length -= bitsToWrite;
+	}
+};
+
 BitStream.prototype.readArrayBuffer = function(byteLength) {
 	var buffer = this._view.getArrayBuffer(this._index, byteLength);
 	this._index += (byteLength * 8);
 	return buffer;
+};
+
+BitStream.prototype.writeArrayBuffer = function(buffer, byteLength) {
+	this.writeBitStream(new BitStream(buffer), byteLength * 8);
 };
 
 // AMD / RequireJS
