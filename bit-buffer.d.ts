@@ -7,23 +7,23 @@ declare module 'bit-buffer' {
 		readonly buffer: Buffer;
 		readonly byteLength: number;
 
-		getBits(offset: number, bits: number, signed?: boolean);
+		getBits(offset: number, bits: number, signed?: boolean): number;
 
-		getInt8(offset: number);
+		getInt8(offset: number): number;
 
-		getInt16(offset: number);
+		getInt16(offset: number): number;
 
-		getInt32(offset: number);
+		getInt32(offset: number): number;
 
-		getUint8(offset: number);
+		getUint8(offset: number): number;
 
-		getUint16(offset: number);
+		getUint16(offset: number): number;
 
-		getUint32(offset: number);
+		getUint32(offset: number): number;
 
-		getFloat32(offset: number);
+		getFloat32(offset: number): number;
 
-		getFloat64(offset: number);
+		getFloat64(offset: number): number;
 
 		setBits(offset: number, value: number, bits: number);
 
@@ -50,6 +50,7 @@ declare module 'bit-buffer' {
 		readonly length: number;
 		readonly bitsLeft: number;
 		readonly buffer: Buffer;
+		readonly view: BitView;
 		byteIndex: number;
 		index: number;
 
