@@ -4,6 +4,9 @@ declare module 'bit-buffer' {
 	export class BitView {
 		constructor(buffer: ArrayBuffer | Buffer, byteLength?: number);
 
+		readonly buffer: Buffer;
+		readonly byteLength: number;
+
 		getBits(offset: number, bits: number, signed?: boolean);
 
 		getInt8(offset: number);
@@ -44,10 +47,10 @@ declare module 'bit-buffer' {
 	export class BitStream {
 		constructor(source: ArrayBuffer | Buffer | BitView, byteOffset?: number, byteLength?: number)
 
+		readonly length: number;
+		readonly bitsLeft: number;
+		readonly buffer: Buffer;
 		byteIndex: number;
-		length: number;
-		bitsLeft: number;
-		buffer: Buffer;
 		index: number;
 
 		readBits(bits: number, signed?: boolean): number;
