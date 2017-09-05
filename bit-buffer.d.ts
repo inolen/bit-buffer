@@ -1,8 +1,48 @@
 declare module 'bit-buffer' {
 	import {Buffer} from 'buffer';
 
+	export class BitView {
+		constructor(buffer: ArrayBuffer | Buffer, byteLength?: number);
+
+		getBits(offset: number, bits: number, signed?: boolean);
+
+		getInt8(offset: number);
+
+		getInt16(offset: number);
+
+		getInt32(offset: number);
+
+		getUint8(offset: number);
+
+		getUint16(offset: number);
+
+		getUint32(offset: number);
+
+		getFloat32(offset: number);
+
+		getFloat64(offset: number);
+
+		setBits(offset: number, value: number, bits: number);
+
+		setInt8(offset: number);
+
+		setInt16(offset: number);
+
+		setInt32(offset: number);
+
+		setUint8(offset: number);
+
+		setUint16(offset: number);
+
+		setUint32(offset: number);
+
+		setFloat32(offset: number, value: number);
+
+		setFloat64(offset: number, value: number);
+	}
+
 	export class BitStream {
-		constructor(source: ArrayBuffer | Buffer, byteOffset?: number, byteLength?: number)
+		constructor(source: ArrayBuffer | Buffer | BitView, byteOffset?: number, byteLength?: number)
 
 		byteIndex: number;
 		length: number;
