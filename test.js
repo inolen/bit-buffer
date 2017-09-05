@@ -27,8 +27,8 @@ suite('BitBuffer', function () {
 
 		bsw.writeBits(unsigned_max, 5);
 		bsw.writeBits(-unsigned_max, 5);
-		assert(bsr.readBits(5) === unsigned_max);
-		assert(bsr.readBits(5) === 1);
+		assert.equal(bsr.readBits(5), unsigned_max);
+		assert.equal(bsr.readBits(5), 1);
 	});
 
 	test('Min / max int8', function () {
@@ -36,8 +36,8 @@ suite('BitBuffer', function () {
 
 		bsw.writeInt8(signed_max);
 		bsw.writeInt8(-signed_max - 1);
-		assert(bsr.readInt8() === signed_max);
-		assert(bsr.readInt8() === -signed_max - 1);
+		assert.equal(bsr.readInt8(), signed_max);
+		assert.equal(bsr.readInt8(), -signed_max - 1);
 	});
 
 	test('Min / max uint8', function () {
@@ -45,8 +45,8 @@ suite('BitBuffer', function () {
 
 		bsw.writeUint8(unsigned_max);
 		bsw.writeUint8(-unsigned_max);
-		assert(bsr.readUint8() === unsigned_max);
-		assert(bsr.readUint8() === 1);
+		assert.equal(bsr.readUint8(), unsigned_max);
+		assert.equal(bsr.readUint8(), 1);
 	});
 
 	test('Min / max int16', function () {
@@ -54,8 +54,8 @@ suite('BitBuffer', function () {
 
 		bsw.writeInt16(signed_max);
 		bsw.writeInt16(-signed_max - 1);
-		assert(bsr.readInt16() === signed_max);
-		assert(bsr.readInt16() === -signed_max - 1);
+		assert.equal(bsr.readInt16(), signed_max);
+		assert.equal(bsr.readInt16(), -signed_max - 1);
 	});
 
 	test('Min / max uint16', function () {
@@ -63,8 +63,8 @@ suite('BitBuffer', function () {
 
 		bsw.writeUint16(unsigned_max);
 		bsw.writeUint16(-unsigned_max);
-		assert(bsr.readUint16() === unsigned_max);
-		assert(bsr.readUint16() === 1);
+		assert.equal(bsr.readUint16(), unsigned_max);
+		assert.equal(bsr.readUint16(), 1);
 	});
 
 	test('Min / max int32', function () {
@@ -72,8 +72,8 @@ suite('BitBuffer', function () {
 
 		bsw.writeInt32(signed_max);
 		bsw.writeInt32(-signed_max - 1);
-		assert(bsr.readInt32() === signed_max);
-		assert(bsr.readInt32() === -signed_max - 1);
+		assert.equal(bsr.readInt32(), signed_max);
+		assert.equal(bsr.readInt32(), -signed_max - 1);
 	});
 
 	test('Min / max uint32', function () {
@@ -81,8 +81,8 @@ suite('BitBuffer', function () {
 
 		bsw.writeUint32(unsigned_max);
 		bsw.writeUint32(-unsigned_max);
-		assert(bsr.readUint32() === unsigned_max);
-		assert(bsr.readUint32() === 1);
+		assert.equal(bsr.readUint32(), unsigned_max);
+		assert.equal(bsr.readUint32(), 1);
 	});
 
 	test('Unaligned reads', function () {
@@ -90,9 +90,9 @@ suite('BitBuffer', function () {
 		bsw.writeUint8(0xFF);
 		bsw.writeBits(14, 5);
 
-		assert(bsr.readBits(5) === 13);
-		assert(bsr.readUint8() === 0xFF);
-		assert(bsr.readBits(5) === 14);
+		assert.equal(bsr.readBits(5), 13);
+		assert.equal(bsr.readUint8(), 0xFF);
+		assert.equal(bsr.readBits(5), 14);
 	});
 
 	test('Min / max float32 (normal values)', function () {
@@ -107,8 +107,8 @@ suite('BitBuffer', function () {
 		bsw.writeFloat32(min);
 		bsw.writeFloat32(max);
 
-		assert(bsr.readFloat32() === min);
-		assert(bsr.readFloat32() === max);
+		assert.equal(bsr.readFloat32(), min);
+		assert.equal(bsr.readFloat32(), max);
 	});
 
 	test('Min / max float64 (normal values)', function () {
@@ -125,15 +125,15 @@ suite('BitBuffer', function () {
 		bsw.writeFloat64(min);
 		bsw.writeFloat64(max);
 
-		assert(bsr.readFloat64() === min);
-		assert(bsr.readFloat64() === max);
+		assert.equal(bsr.readFloat64(), min);
+		assert.equal(bsr.readFloat64(), max);
 	});
 
 	test('Overwrite previous value with 0', function () {
 		bv.setUint8(0, 13);
 		bv.setUint8(0, 0);
 
-		assert(bv.getUint8(0) === 0);
+		assert.equal(bv.getUint8(0), 0);
 	});
 
 	test('Read / write ASCII string, fixed length', function () {
@@ -141,30 +141,30 @@ suite('BitBuffer', function () {
 		var len = 16;
 
 		bsw.writeASCIIString(str, len);
-		assert(bsw.byteIndex === len);
+		assert.equal(bsw.byteIndex, len);
 
-		assert(bsr.readASCIIString(len) === str);
-		assert(bsr.byteIndex === len);
+		assert.equal(bsr.readASCIIString(len), str);
+		assert.equal(bsr.byteIndex, len);
 	});
 
 	test('Read / write ASCII string, unknown length', function () {
 		var str = 'foobar';
 
 		bsw.writeASCIIString(str);
-		assert(bsw.byteIndex === str.length + 1);  // +1 for 0x00
+		assert.equal(bsw.byteIndex, str.length + 1);  // +1 for 0x00
 
-		assert(bsr.readASCIIString() === str);
-		assert(bsr.byteIndex === str.length + 1);
+		assert.equal(bsr.readASCIIString(), str);
+		assert.equal(bsr.byteIndex, str.length + 1);
 	});
 
 	test('Read ASCII string, 0 length', function () {
 		var str = 'foobar';
 
 		bsw.writeASCIIString(str);
-		assert(bsw.byteIndex === str.length + 1);  // +1 for 0x00
+		assert.equal(bsw.byteIndex, str.length + 1);  // +1 for 0x00
 
-		assert(bsr.readASCIIString(0) === '');
-		assert(bsr.byteIndex === 0);
+		assert.equal(bsr.readASCIIString(0), '');
+		assert.equal(bsr.byteIndex, 0);
 	});
 
 	test('Read overflow', function () {
@@ -220,9 +220,9 @@ suite('BitBuffer', function () {
 
 	test('Write boolean', function () {
 		bsr.writeBoolean(true);
-		assert(bv.getBits(0, 1, false) === 1);
+		assert.equal(bv.getBits(0, 1, false), 1);
 		bsr.writeBoolean(false);
-		assert(bv.getBits(1, 1, false) === 0);
+		assert.equal(bv.getBits(1, 1, false), 0);
 	});
 
 	test('Read / write UTF8 string, only ASCII characters', function () {
@@ -231,8 +231,8 @@ suite('BitBuffer', function () {
 		bsw.writeUTF8String(str);
 		assert(bsw.byteIndex === str.length + 1);  // +1 for 0x00
 
-		assert(bsr.readUTF8String() === str);
-		assert(bsr.byteIndex === str.length + 1);
+		assert.equal(bsr.readUTF8String(), str);
+		assert.equal(bsr.byteIndex, str.length + 1);
 	});
 
 	test('Read / write UTF8 string, non ASCII characters', function () {
@@ -342,9 +342,9 @@ suite('BitBuffer', function () {
 
 	test('writeArrayBuffer', function () {
 		var source = new Uint8Array(4);
-		source[0]=0xF0;
-		source[1]=0xF1;
-		source[2]=0xF1;
+		source[0] = 0xF0;
+		source[1] = 0xF1;
+		source[2] = 0xF1;
 		bsr.readBits(3); //offset
 
 		bsr.writeArrayBuffer(source.buffer, 2);
@@ -355,7 +355,7 @@ suite('BitBuffer', function () {
 		assert.equal(bsr.readBits(8), 128);
 	});
 
-	test('Get buffer from view', function() {
+	test('Get buffer from view', function () {
 		bv.setBits(0, 0xFFFFFFFF, 32);
 		var buffer = bv.buffer;
 
