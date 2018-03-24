@@ -251,8 +251,7 @@ function readString(stream, bytes, utf8) {
 	}
 }
 
-/* utf.js - UTF-8 <=> UTF-16 convertion
- *
+/*
  * Copyright (C) 1999 Masanao Izumo <iz@onicos.co.jp>
  * Version: 1.0
  * Modified: Dec 25 1999
