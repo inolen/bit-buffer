@@ -244,16 +244,60 @@ function readString(stream, bytes, utf8) {
 		i++;
 	}
 
-	var string = String.fromCharCode.apply(null, chars);
 	if (utf8) {
-		try {
-			return decodeURIComponent(escape(string)); // https://stackoverflow.com/a/17192845
-		} catch (e) {
-			return string;
-		}
+		return Utf8ArrayToStr(chars);
 	} else {
-		return string;
+		return String.fromCharCode.apply(null, chars);
 	}
+}
+
+/*
+ * Copyright (C) 1999 Masanao Izumo <iz@onicos.co.jp>
+ * Version: 1.0
+ * Modified: Dec 25 1999
+ * Last Modified: Mar 23 2018 by github.com/browndav
+ * This library is free.  You can redistribute it and/or modify it.
+ */
+function Utf8ArrayToStr(array) {
+	var out, i, len, c = 0;
+	var rv, c2, c3, c4;
+
+	out = "";
+	len = array.length;
+	i = 0;
+
+	while (i < len) {
+		c = array[i++];
+		if (c < 0x80) {
+			rv = c;
+		} else if ((c & 0xe0) == 0xc0) {
+			// 110x xxxx   10xx xxxx
+			if (len < i) break;
+			c2 = array[i++];
+			rv = ((c & 0x1F) << 6) | (c2 & 0x3F);
+		} else if ((c & 0xf0) == 0xe0) {
+			// 1110 xxxx  10xx xxxx  10xx xxxx
+			if (len < i + 1) break;
+			c2 = array[i++]; c3 = array[i++];
+			rv = ((c & 0x0F) << 12) | ((c2 & 0x3F) << 6) | (c3 & 0x3F);
+		} else if ((c & 0xf8) == 0xf0 && (c <= 0xf4)) {
+			// 1111 0xxx 10xx xxxx 10xx xxxx 10xx xxxx
+			if (len < i + 2) break;
+			c2 = array[i++]; c3 = array[i++]; c4 = array[i++];
+			rv = ((c & 0x07) << 18) | ((c2 & 0x3F) << 12) | ((c3 & 0x3F) << 6) | (c4 & 0x3F);
+		} else {
+			// Invalid, skip
+			continue;
+		}
+		// Surrogate pairs
+		if (rv >= 0x10000) {
+			out += String.fromCharCode(Math.floor((rv - 0x10000) / 0x400) + 0xD800);
+			out += String.fromCharCode(((rv - 0x10000) % 0x400) + 0xDC00);
+		} else {
+			out += String.fromCharCode(rv);
+		}
+	}
+	return out;
 }
 
 function writeASCIIString(stream, string, bytes) {
@@ -274,9 +318,21 @@ function writeUTF8String(stream, string, bytes) {
 }
 
 function stringToByteArray(str) { // https://gist.github.com/volodymyr-mykhailyk/2923227
-	var b = [], i, unicode;
+	var b = [], i, unicode, surrogate = 0;
 	for (i = 0; i < str.length; i++) {
 		unicode = str.charCodeAt(i);
+		// Surrogate pairs
+		if (surrogate) {
+			if (0xdc00 <= unicode && unicode <= 0xdfff) { // Surrogate end
+				unicode = ((surrogate - 0xd800) * 0x400) + (unicode - 0xdc00) + 0x10000;
+			} else {
+				unicode = 0xfffd; // Replacement character
+			}
+			surrogate = 0;
+		} else if (0xd800 <= unicode && unicode <= 0xdbFF) { // Surrogate start
+			surrogate = unicode;
+			continue;
+		}
 		// 0x00000000 - 0x0000007f -> 0xxxxxxx
 		if (unicode <= 0x7f) {
 			b.push(unicode);
