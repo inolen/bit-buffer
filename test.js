@@ -239,15 +239,32 @@ suite('BitBuffer', function () {
 		var str = '日本語';
 
 		var bytes = [
-			0xE6,
-			0x97,
-			0xA5,
-			0xE6,
-			0x9C,
-			0xAC,
-			0xE8,
-			0xAA,
-			0x9E
+			0xE6, 0x97, 0xA5,
+			0xE6, 0x9C, 0xAC,
+			0xE8, 0xAA, 0x9E
+		];
+
+		bsw.writeUTF8String(str);
+
+		for (var i = 0; i < bytes.length; i++) {
+			assert.equal(bytes[i], bv.getBits(i * 8, 8));
+		}
+
+		assert.equal(bsw.byteIndex, bytes.length + 1);  // +1 for 0x00
+
+		assert.equal(str, bsr.readUTF8String());
+		assert.equal(bsr.byteIndex, bytes.length + 1);
+	});
+
+	test('Read / write UTF8 string, surrogate pairs', function () {
+		var str = '|😂|👍|';
+
+		var bytes = [
+			0x7C,
+			0xF0, 0x9F, 0x98, 0x82,
+			0x7C,
+			0xF0, 0x9F, 0x91, 0x8D,
+			0x7C
 		];
 
 		bsw.writeUTF8String(str);
