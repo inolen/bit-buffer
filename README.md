@@ -95,11 +95,11 @@ Returns `bits` numbers of bits from the view at the current index, updating the 
 
 Sets `bits` numbers of bits from `value` in the view at the current index, updating the index.
 
-#### readUInt8(), readUInt16(), readUInt32(), readInt8(), readInt16(), readInt32()
+#### readUint8(), readUint16(), readUint32(), readInt8(), readInt16(), readInt32()
  
 Read a 8, 16 or 32 bits (unsigned) integer at the current index, updating the index.
 
-#### writeUInt8(value), writeUInt16(value), writeUInt32(value), writeInt8(value), writeInt16(value), writeInt32(value)
+#### writeUint8(value), writeUint16(value), writeUint32(value), writeInt8(value), writeInt16(value), writeInt32(value)
  
 Write 8, 16 or 32 bits from `value` as (unsigned) integer at the current index, updating the index.
 
