@@ -27,7 +27,7 @@ var BitView = function (source, byteOffset, byteLength) {
 BitView._scratch = new DataView(new ArrayBuffer(8));
 
 Object.defineProperty(BitView.prototype, 'buffer', {
-	get: function () { return Buffer.from(this._view.buffer); },
+	get: function () { return typeof Buffer !== 'undefined' ?  Buffer.from(this._view.buffer) : this._view.buffer; },
 	enumerable: true,
 	configurable: false
 });
