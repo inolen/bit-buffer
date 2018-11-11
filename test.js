@@ -295,7 +295,8 @@ suite('BitBuffer', function () {
 	});
 
 	test('writeBitStream', function () {
-		var sourceStream = new BitStream(new ArrayBuffer(64));
+		var buf = new ArrayBuffer(64);
+		var sourceStream = new BitStream(buf);
 
 		sourceStream.writeBits(0xF0, 8); //0b11110000
 		sourceStream.writeBits(0xF1, 8); //0b11110001
@@ -306,6 +307,29 @@ suite('BitBuffer', function () {
 		bsr.index = 0;
 		assert.equal(bsr.readBits(6), 0x3E); //0b00111110
 		assert.equal(11, sourceStream.index);
+
+		var bin = new Uint8Array(buf);
+		assert.equal(bin[0], 0xF0);
+		assert.equal(bin[1], 0xF1);
+	});
+
+	test('writeBitStream Buffer', function () {
+		var buf = Buffer.alloc(64);
+		var sourceStream = new BitStream(buf);
+
+		sourceStream.writeBits(0xF0, 8); //0b11110000
+		sourceStream.writeBits(0xF1, 8); //0b11110001
+		sourceStream.index = 0;
+		sourceStream.readBits(3); //offset
+		bsr.writeBitStream(sourceStream, 8);
+		assert.equal(8, bsr.index);
+		bsr.index = 0;
+		assert.equal(bsr.readBits(6), 0x3E); //0b00111110
+		assert.equal(11, sourceStream.index);
+
+		var bin = new Uint8Array(buf.buffer);
+		assert.equal(bin[0], 0xF0);
+		assert.equal(bin[1], 0xF1);
 	});
 
 	test('writeBitStream long', function () {
