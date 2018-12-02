@@ -64,19 +64,20 @@ BitView.prototype.getBits = function (offset, bits, signed) {
 		// the max number of bits we can read from the current byte
 		var read = Math.min(remaining, 8 - bitOffset);
 
+		var mask, readBits;
 		if (this.bigEndian) {
 			// create a mask with the correct bit width
-			var mask = ~(0xFF << read);
+			mask = ~(0xFF << read);
 			// shift the bits we want to the start of the byte and mask of the rest
-			var readBits = (currentByte >> (8 - read - bitOffset)) & mask;
+			readBits = (currentByte >> (8 - read - bitOffset)) & mask;
 
 			value <<= read;
 			value |= readBits;
 		} else {
 			// create a mask with the correct bit width
-			var mask = ~(0xFF << read);
+			mask = ~(0xFF << read);
 			// shift the bits we want to the start of the byte and mask off the rest
-			var readBits = (currentByte >> bitOffset) & mask;
+			readBits = (currentByte >> bitOffset) & mask;
 
 			value |= readBits << i;
 		}
@@ -112,15 +113,16 @@ BitView.prototype.setBits = function (offset, value, bits) {
 		var byteOffset = offset >> 3;
 		var wrote = Math.min(remaining, 8 - bitOffset);
 
+		var mask, writeBits, destMask;
 		if (this.bigEndian) {
 			// create a mask with the correct bit width
-			var mask = ~(~0 << wrote);
+			mask = ~(~0 << wrote);
 			// shift the bits we want to the start of the byte and mask of the rest
-			var writeBits = (value >> (bits - i - wrote)) & mask;
+			writeBits = (value >> (bits - i - wrote)) & mask;
 
 			var destShift = 8 - bitOffset - wrote;
 			// destination mask to zero all the bits we're changing first
-			var destMask = ~(mask << destShift);
+			destMask = ~(mask << destShift);
 
 			this._view[byteOffset] =
 				(this._view[byteOffset] & destMask)
@@ -128,13 +130,13 @@ BitView.prototype.setBits = function (offset, value, bits) {
 
 		} else {
 			// create a mask with the correct bit width
-			var mask = ~(0xFF << wrote);
+			mask = ~(0xFF << wrote);
 			// shift the bits we want to the start of the byte and mask of the rest
-			var writeBits = value & mask;
+			writeBits = value & mask;
 			value >>= wrote;
 
 			// destination mask to zero all the bits we're changing first
-			var destMask = ~(mask << bitOffset);
+			destMask = ~(mask << bitOffset);
 
 			this._view[byteOffset] =
 				(this._view[byteOffset] & destMask)
