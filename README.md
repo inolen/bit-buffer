@@ -12,6 +12,10 @@ BitBuffer provides two objects, `BitView` and `BitStream`. `BitView` is a wrappe
 bb.buffer  // Underlying ArrayBuffer.
 ```
 
+```javascript
+bb.bigEndian = true; // Switch to big endian (default is little)
+```
+
 ### Methods
 
 #### BitView(buffer, optional byteOffset, optional byteLength)
@@ -75,6 +79,10 @@ bb.bitsLeft; // The number of bits left in the stream
 ```javascript
 bb.index; // Get the current index in bits
 bb.index = 0// Set the current index in bits
+```
+
+```javascript
+bb.bigEndian = true; // Switch to big endian (default is little)
 ```
 
 ### Methods

@@ -20,6 +20,8 @@ var BitView = function (source, byteOffset, byteLength) {
 	byteLength = byteLength || source.byteLength /* ArrayBuffer */ || source.length /* Buffer */;
 
 	this._view = new Uint8Array(source, byteOffset, byteLength);
+
+	this.bigEndian = false;
 };
 
 // Used to massage fp values so we can operate on them
@@ -62,11 +64,22 @@ BitView.prototype.getBits = function (offset, bits, signed) {
 		// the max number of bits we can read from the current byte
 		var read = Math.min(remaining, 8 - bitOffset);
 
-		// create a mask with the correct bit width
-		var mask = (1 << read) - 1;
-		// shift the bits we want to the start of the byte and mask of the rest
-		var readBits = (currentByte >> bitOffset) & mask;
-		value |= readBits << i;
+		if (this.bigEndian) {
+			// create a mask with the correct bit width
+			var mask = ~(0xFF << read);
+			// shift the bits we want to the start of the byte and mask of the rest
+			var readBits = (currentByte >> (8 - read - bitOffset)) & mask;
+
+			value <<= read;
+			value |= readBits;
+		} else {
+			// create a mask with the correct bit width
+			var mask = ~(0xFF << read);
+			// shift the bits we want to the start of the byte and mask off the rest
+			var readBits = (currentByte >> bitOffset) & mask;
+
+			value |= readBits << i;
+		}
 
 		offset += read;
 		i += read;
@@ -94,18 +107,39 @@ BitView.prototype.setBits = function (offset, value, bits) {
 	}
 
 	for (var i = 0; i < bits;) {
-		var wrote;
+		var remaining = bits - i;
+		var bitOffset = offset & 7;
+		var byteOffset = offset >> 3;
+		var wrote = Math.min(remaining, 8 - bitOffset);
 
-		// Write an entire byte if we can.
-		if ((bits - i) >= 8 && ((offset & 7) === 0)) {
-			this._view[offset >> 3] = value & 0xFF;
-			wrote = 8;
+		if (this.bigEndian) {
+			// create a mask with the correct bit width
+			var mask = ~(~0 << wrote);
+			// shift the bits we want to the start of the byte and mask of the rest
+			var writeBits = (value >> (bits - i - wrote)) & mask;
+
+			var destShift = 8 - bitOffset - wrote;
+			// destination mask to zero all the bits we're changing first
+			var destMask = ~(mask << destShift);
+
+			this._view[byteOffset] =
+				(this._view[byteOffset] & destMask)
+				| (writeBits << destShift);
+
 		} else {
-			this._setBit(offset, value & 0x1);
-			wrote = 1;
-		}
+			// create a mask with the correct bit width
+			var mask = ~(0xFF << wrote);
+			// shift the bits we want to the start of the byte and mask of the rest
+			var writeBits = value & mask;
+			value >>= wrote;
 
-		value = (value >> wrote);
+			// destination mask to zero all the bits we're changing first
+			var destMask = ~(mask << bitOffset);
+
+			this._view[byteOffset] =
+				(this._view[byteOffset] & destMask)
+				| (writeBits << bitOffset);
+		}
 
 		offset += wrote;
 		i += wrote;
@@ -357,6 +391,13 @@ Object.defineProperty(BitStream.prototype, 'buffer', {
 
 Object.defineProperty(BitStream.prototype, 'view', {
 	get: function () { return this._view; },
+	enumerable: true,
+	configurable: false
+});
+
+Object.defineProperty(BitStream.prototype, 'bigEndian', {
+	get: function () { return this._view.bigEndian; },
+	set: function (val) { this._view.bigEndian = val; },
 	enumerable: true,
 	configurable: false
 });

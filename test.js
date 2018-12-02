@@ -371,3 +371,234 @@ suite('BitBuffer', function () {
 		assert.equal(0xFFFF, buffer.readUInt16LE(0));
 	});
 });
+
+suite('Reading big/little endian', function () {
+	var array, u8, bv, bsw, bsr;
+
+	setup(function () {
+		array = new ArrayBuffer(64);
+		u8 = new Uint8Array(array);
+		u8[0] = 0x01;
+		u8[1] = 0x02;
+		// Test initializing straight from the array.
+		bsr = new BitStream(array);
+	});
+
+	test('4b, little-endian', function () {
+		assert.equal(bsr.index, 0, 'BitStream didn\'t init at offset 0');
+
+		var result = [];
+		result.push(bsr.readBits(4));
+		result.push(bsr.readBits(4));
+		result.push(bsr.readBits(4));
+		result.push(bsr.readBits(4));
+
+		// 0000 0001  0000 0010  [01 02]
+		// [#2] [#1]  [#4] [#3]
+		assert.deepEqual(result, [1, 0, 2, 0]);
+	});
+
+	test('8b, little-endian', function () {
+		assert.equal(bsr.index, 0, 'BitStream didn\'t init at offset 0');
+
+		var result = [];
+		result.push(bsr.readBits(8));
+		result.push(bsr.readBits(8));
+
+		// 0000 0001  0000 0010  [01 02]
+		// [     #1]  [     #2]
+		assert.deepEqual(result, [1, 2]);
+	});
+
+	test('10b, little-endian', function () {
+		assert.equal(bsr.index, 0, 'BitStream didn\'t init at offset 0');
+
+		var result = [];
+		result.push(bsr.readBits(10));
+
+		// 0000 0001  0000 0010  [01 02]
+		// ...   #1]  [   #2][#1...
+		assert.deepEqual(result, [513]);
+	});
+
+	test('16b, little-endian', function () {
+		assert.equal(bsr.index, 0, 'BitStream didn\'t init at offset 0');
+
+		var result = [];
+		result.push(bsr.readBits(16));
+
+		// 0000 0001  0000 0010  [01 02]
+		// [                #1]
+		assert.deepEqual(result, [0x201]);
+	});
+
+	test('24b, little-endian', function () {
+		u8[2] = 0x03;
+		assert.equal(bsr.index, 0, 'BitStream didn\'t init at offset 0');
+
+		var result = [];
+		result.push(bsr.readBits(24));
+
+		// 0000 0001  0000 0010  0000 0011  [01 02 03]
+		// [                           #1]
+		assert.deepEqual(result, [0x30201]);
+	});
+
+	test('4b, big-endian', function () {
+		bsr.bigEndian = true;
+		assert.equal(bsr.index, 0, 'BitStream didn\'t init at offset 0');
+
+		var result = [];
+		result.push(bsr.readBits(4));
+		result.push(bsr.readBits(4));
+		result.push(bsr.readBits(4));
+		result.push(bsr.readBits(4));
+
+		// 0000 0001  0000 0010  [01 02]
+		// [#1] [#2]  [#3] [#4]
+		assert.deepEqual(result, [0, 1, 0, 2]);
+	});
+
+	test('8b, big-endian', function () {
+		bsr.bigEndian = true;
+		assert.equal(bsr.index, 0, 'BitStream didn\'t init at offset 0');
+
+		var result = [];
+		result.push(bsr.readBits(8));
+		result.push(bsr.readBits(8));
+
+		// 0000 0001  0000 0010  [01 02]
+		// [     #1]  [     #2]
+		assert.deepEqual(result, [1, 2]);
+	});
+
+	test('10b, big-endian', function () {
+		bsr.bigEndian = true;
+		assert.equal(bsr.index, 0, 'BitStream didn\'t init at offset 0');
+
+		var result = [];
+		result.push(bsr.readBits(10));
+		result.push(bsr.readBits(6));
+
+		// 0000 0001  0000 0010  [01 02]
+		// [         #1][   #2]
+		assert.deepEqual(result, [4, 2]);
+	});
+
+	test('16b, big-endian', function () {
+		bsr.bigEndian = true;
+		assert.equal(bsr.index, 0, 'BitStream didn\'t init at offset 0');
+
+		var result = [];
+		result.push(bsr.readBits(16));
+
+		// 0000 0001  0000 0010  [01 02]
+		// [                #1]
+		assert.deepEqual(result, [0x102]);
+	});
+
+	test('24b, big-endian', function () {
+		u8[2] = 0x03;
+		bsr.bigEndian = true;
+		assert.equal(bsr.index, 0, 'BitStream didn\'t init at offset 0');
+
+		var result = [];
+		result.push(bsr.readBits(24));
+
+		// 0000 0001  0000 0010  0000 0011  [01 02 03]
+		// [                           #1]
+		assert.deepEqual(result, [0x10203]);
+	});
+});
+
+suite('Writing big/little endian', function () {
+	var array, u8, bv, bsw, bsr;
+
+	setup(function () {
+		array = new ArrayBuffer(2);
+		u8 = new Uint8Array(array);
+		bv = new BitView(array);
+		bsw = new BitStream(bv);
+	});
+
+	test('4b, little-endian', function () {
+		// 0000 0001  0000 0010  [01 02]
+		// [#2] [#1]  [#4] [#3]
+		bsw.writeBits(1, 4);
+		bsw.writeBits(0, 4);
+		bsw.writeBits(2, 4);
+		bsw.writeBits(0, 4);
+
+		assert.deepEqual(u8, [0x01, 0x02]);
+	});
+
+	test('8b, little-endian', function () {
+		// 0000 0001  0000 0010  [01 02]
+		// [     #1]  [     #2]
+		bsw.writeBits(1, 8);
+		bsw.writeBits(2, 8);
+
+		assert.deepEqual(u8, [0x01, 0x02]);
+	});
+
+	test('10b, little-endian', function () {
+		// 0000 0001  0000 0010  [01 02]
+		// ...   #1]  [   #2][#1...
+		bsw.writeBits(513, 10);
+
+		assert.deepEqual(u8, [0x01, 0x02]);
+	});
+
+	test('16b, little-endian', function () {
+		// 0000 0001  0000 0010  [01 02]
+		// [                #1]
+		bsw.writeBits(0x201, 16);
+
+		assert.deepEqual(u8, [0x01, 0x02]);
+	});
+
+	test('4b, big-endian', function () {
+		bsw.bigEndian = true;
+
+		// 0000 0001  0000 0010  [01 02]
+		// [#1] [#2]  [#3] [#4]
+		bsw.writeBits(0, 4);
+		bsw.writeBits(1, 4);
+		bsw.writeBits(0, 4);
+		bsw.writeBits(2, 4);
+
+		assert.deepEqual(u8, [0x01, 0x02]);
+	});
+
+	test('8b, big-endian', function () {
+		bsw.bigEndian = true;
+
+		// 0000 0001  0000 0010  [01 02]
+		// [     #1]  [     #2]
+		bsw.writeBits(1, 8);
+		bsw.writeBits(2, 8);
+
+		assert.deepEqual(u8, [0x01, 0x02]);
+	});
+
+	test('10b, big-endian', function () {
+		bsw.bigEndian = true;
+
+		// 0000 0001  0000 0010  [01 02]
+		// [         #1][   #2]
+		bsw.writeBits(4, 10);
+		bsw.writeBits(2, 6);
+
+		assert.deepEqual(u8, [0x01, 0x02]);
+	});
+
+	test('16b, big-endian', function () {
+		bsw.bigEndian = true;
+
+		// 0000 0001  0000 0010  [01 02]
+		// [                #1]
+		bsw.writeBits(0x102, 16);
+
+		assert.deepEqual(u8, [0x01, 0x02]);
+	});
+});
