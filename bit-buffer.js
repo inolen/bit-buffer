@@ -19,7 +19,7 @@ var BitView = function (source, byteOffset, byteLength) {
 	byteOffset = byteOffset || 0;
 	byteLength = byteLength || source.byteLength /* ArrayBuffer */ || source.length /* Buffer */;
 
-	this._view = new Uint8Array(source, byteOffset, byteLength);
+	this._view = new Uint8Array(source.buffer || source, byteOffset, byteLength);
 
 	this.bigEndian = false;
 };
