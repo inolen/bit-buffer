@@ -1,6 +1,6 @@
 {
   "name": "bit-buffer",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Bit-level reads and writes for ArrayBuffers",
   "main": "bit-buffer.js",
   "types": "./bit-buffer.d.ts",
