@@ -6,6 +6,7 @@ declare module 'bit-buffer' {
 
 		readonly buffer: Buffer;
 		readonly byteLength: number;
+		bigEndian: boolean;
 
 		getBits(offset: number, bits: number, signed?: boolean): number;
 
@@ -53,6 +54,7 @@ declare module 'bit-buffer' {
 		readonly view: BitView;
 		byteIndex: number;
 		index: number;
+		bigEndian: boolean;
 
 		readBits(bits: number, signed?: boolean): number;
 
