@@ -553,7 +553,7 @@ suite('Writing big/little endian', function () {
 		bsw.writeBits(2, 4);
 		bsw.writeBits(0, 4);
 
-		assert.deepEqual(u8, [0x01, 0x02]);
+		assert.deepEqual(u8, new Uint8Array([0x01, 0x02]));
 	});
 
 	test('8b, little-endian', function () {
@@ -562,7 +562,7 @@ suite('Writing big/little endian', function () {
 		bsw.writeBits(1, 8);
 		bsw.writeBits(2, 8);
 
-		assert.deepEqual(u8, [0x01, 0x02]);
+		assert.deepEqual(u8, new Uint8Array([0x01, 0x02]));
 	});
 
 	test('10b, little-endian', function () {
@@ -570,7 +570,7 @@ suite('Writing big/little endian', function () {
 		// ...   #1]  [   #2][#1...
 		bsw.writeBits(513, 10);
 
-		assert.deepEqual(u8, [0x01, 0x02]);
+		assert.deepEqual(u8, new Uint8Array([0x01, 0x02]));
 	});
 
 	test('16b, little-endian', function () {
@@ -578,7 +578,7 @@ suite('Writing big/little endian', function () {
 		// [                #1]
 		bsw.writeBits(0x201, 16);
 
-		assert.deepEqual(u8, [0x01, 0x02]);
+		assert.deepEqual(u8, new Uint8Array([0x01, 0x02]));
 	});
 
 	test('4b, big-endian', function () {
@@ -591,7 +591,7 @@ suite('Writing big/little endian', function () {
 		bsw.writeBits(0, 4);
 		bsw.writeBits(2, 4);
 
-		assert.deepEqual(u8, [0x01, 0x02]);
+		assert.deepEqual(u8, new Uint8Array([0x01, 0x02]));
 	});
 
 	test('8b, big-endian', function () {
@@ -602,7 +602,7 @@ suite('Writing big/little endian', function () {
 		bsw.writeBits(1, 8);
 		bsw.writeBits(2, 8);
 
-		assert.deepEqual(u8, [0x01, 0x02]);
+		assert.deepEqual(u8, new Uint8Array([0x01, 0x02]));
 	});
 
 	test('10b, big-endian', function () {
@@ -613,7 +613,7 @@ suite('Writing big/little endian', function () {
 		bsw.writeBits(4, 10);
 		bsw.writeBits(2, 6);
 
-		assert.deepEqual(u8, [0x01, 0x02]);
+		assert.deepEqual(u8, new Uint8Array([0x01, 0x02]));
 	});
 
 	test('16b, big-endian', function () {
@@ -623,6 +623,6 @@ suite('Writing big/little endian', function () {
 		// [                #1]
 		bsw.writeBits(0x102, 16);
 
-		assert.deepEqual(u8, [0x01, 0x02]);
+		assert.deepEqual(u8, new Uint8Array([0x01, 0x02]));
 	});
 });
