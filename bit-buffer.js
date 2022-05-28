@@ -498,5 +498,10 @@ else if (typeof module !== 'undefined' && module.exports) {
 		BitStream: BitStream
 	};
 }
+// browser
+else if (typeof window !== 'undefined') {
+    window.BitView = BitView;
+    window.BitStream = BitStream;
+}
 
 }(this));
