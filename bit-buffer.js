@@ -9,14 +9,14 @@
  *
  **********************************************************/
 var BitView = function (source, byteOffset, byteLength) {
-	var isBuffer = source instanceof ArrayBuffer ||
-		(typeof Buffer !== 'undefined' && source instanceof Buffer);
+	var isBuffer = source instanceof ArrayBuffer || ArrayBuffer.isView(source) ||
+	               (typeof Buffer !== 'undefined' && source instanceof Buffer);
 
 	if (!isBuffer) {
 		throw new Error('Must specify a valid ArrayBuffer or Buffer.');
 	}
 
-	byteOffset = byteOffset || 0;
+	byteOffset = byteOffset || source.byteOffset;
 	byteLength = byteLength || source.byteLength /* ArrayBuffer */ || source.length /* Buffer */;
 
 	this._view = new Uint8Array(source.buffer || source, byteOffset, byteLength);
@@ -338,11 +338,11 @@ function stringToByteArray(str) { // https://gist.github.com/volodymyr-mykhailyk
 }
 
 var BitStream = function (source, byteOffset, byteLength) {
-	var isBuffer = source instanceof ArrayBuffer ||
-		(typeof Buffer !== 'undefined' && source instanceof Buffer);
+	var isBuffer = source instanceof ArrayBuffer || ArrayBuffer.isView(source) ||
+	               (typeof Buffer !== 'undefined' && source instanceof Buffer);
 
 	if (!(source instanceof BitView) && !isBuffer) {
-		throw new Error('Must specify a valid BitView, ArrayBuffer or Buffer');
+		throw new Error('Must specify a valid BitView, ArrayBuffer or Buffer.');
 	}
 
 	if (isBuffer) {

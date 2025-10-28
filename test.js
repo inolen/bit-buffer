@@ -394,6 +394,15 @@ suite('BitBuffer', function () {
 		assert.equal(64, buffer.length);
 		assert.equal(0xFFFF, buffer.readUInt16LE(0));
 	});
+
+	test('Read from subarray', function () {
+		const source = new Uint8Array([...Array(8).keys()]);
+		const bs = new BitStream(source.subarray(4, 8));
+		assert.equal(bs.readInt8(), 4);
+		assert.equal(bs.readInt8(), 5);
+		assert.equal(bs.readInt8(), 6);
+		assert.equal(bs.readInt8(), 7);
+	});
 });
 
 suite('Reading big/little endian', function () {
