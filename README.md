@@ -60,11 +60,6 @@ Coerces a float64 to two uint32s and sets at `offset`.
 ### Attributes
 
 ```javascript
-bb.byteIndex; // Get current index in bytes.
-bb.byteIndex = 0;  // Set current index in bytes.
-```
-
-```javascript
 bb.view;  // Underlying BitView
 ```
 
@@ -135,13 +130,13 @@ Reads bytes from the underlying view at the current index until either `bytes` c
 
 Writes a string followed by a NULL character to the underlying view starting at the current index. If the string is longer than `bytes` it will be truncated, and if it is shorter 0x00 will be written in its place.
 
-#### readBitStream(length)
+#### readBytes(size)
 
-Create a new `BitStream` from the underlying view starting the the current index and a length of `length` bits. Updating the index of the existing `BitStream`
+Read a `size` bytes into a new Uint8Array instance.
 
-#### readArrayBuffer(byteLength)
+#### writeBytes(buffer, size)
 
-Read `byteLength` bytes of data from the underlying view as `ArrayBuffer`, updating the index.
+Write `size` bytes from a given Uint8Array instance.
 
 ## license
 

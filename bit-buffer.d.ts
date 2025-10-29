@@ -8,7 +8,7 @@ declare module 'bit-buffer' {
 		readonly byteLength: number;
 		bigEndian: boolean;
 
-		getBits(offset: number, bits: number, signed?: boolean): number;
+		getBits(offset: number, n: number, signed?: boolean): number;
 
 		getInt8(offset: number): number;
 
@@ -26,7 +26,7 @@ declare module 'bit-buffer' {
 
 		getFloat64(offset: number): number;
 
-		setBits(offset: number, value: number, bits: number);
+		setBits(offset: number, value: number, n: number);
 
 		setInt8(offset: number);
 
@@ -48,17 +48,16 @@ declare module 'bit-buffer' {
 	export class BitStream {
 		constructor(source: ArrayBuffer | Buffer | BitView, byteOffset?: number, byteLength?: number)
 
-		readonly length: number;
-		readonly bitsLeft: number;
-		readonly buffer: Buffer;
 		readonly view: BitView;
-		byteIndex: number;
+		readonly buffer: Buffer;
+		readonly length: number;
+		readonly remaining: number;
 		index: number;
 		bigEndian: boolean;
 
-		readBits(bits: number, signed?: boolean): number;
+		readBits(n: number, signed?: boolean): number;
 
-		writeBits(value: number, bits: number);
+		writeBits(value: number, n: number);
 
 		readBoolean(): boolean;
 
@@ -104,12 +103,8 @@ declare module 'bit-buffer' {
 
 		writeUTF8String(data: string, length?: number);
 
-		readBitStream(length: number): BitStream;
+		readBytes(size: number): Uint8Array;
 
-		readArrayBuffer(byteLength: number): Uint8Array;
-
-		writeBitStream(stream: BitStream, length?: number);
-
-		writeArrayBuffer(buffer: BitStream, length?: number);
+		writeBytes(buffer: Uint8Array, size?: number);
 	}
 }
