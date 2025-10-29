@@ -30,8 +30,8 @@
       return typeof Buffer !== 'undefined' ? Buffer.from(this.#view.buffer) : this.#view.buffer;
     }
 
-    get byteLength () {
-      return this.#view.length;
+    get length () {
+      return this.#view.length * 8;
     }
 
     get bigEndian () {
@@ -43,7 +43,7 @@
     }
 
     getBits (offset, n, signed) {
-      const available = (this.#view.length * 8 - offset);
+      const available = this.length - offset;
       let value = 0;
 
       if (n > available) {
@@ -92,7 +92,7 @@
     }
 
     setBits (offset, value, n) {
-      const available = (this.#view.length * 8 - offset);
+      const available = this.length - offset;
 
       if (n > available) {
         throw new Error(`Cannot set ${n} bit(s) from offset ${offset}, ${available} available`);
@@ -169,7 +169,6 @@
 
     getFloat64 (offset) {
       BitView.#scratch.setUint32(0, this.getUint32(offset));
-      // DataView offset is in bytes.
       BitView.#scratch.setUint32(4, this.getUint32(offset + 32));
       return BitView.#scratch.getFloat64(0);
     }
@@ -225,7 +224,6 @@
    **********************************************************/
   class BitStream {
     #view;
-    #length;
     #index;
 
     constructor (source, byteOffset, byteLength) {
@@ -239,14 +237,12 @@
         throw new Error('Must specify a valueid BitView, ArrayBuffer or Buffer.');
       }
 
-      this.#length = this.#view.byteLength * 8;
-
       this.#index = 0;
     }
 
     static #reader (name, size) {
       return function () {
-        if (this.#index + size > this.#length) {
+        if (this.#index + size > this.view.length) {
           throw new Error('Trying to read past the end of the stream');
         }
         const value = this.#view[name](this.#index);
@@ -271,11 +267,11 @@
     }
 
     get length () {
-      return this.#length;
+      return this.#view.length;
     }
 
     get remaining () {
-      return this.#length - this.#index;
+      return this.#view.length - this.#index;
     }
 
     get index () {
