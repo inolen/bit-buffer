@@ -298,6 +298,10 @@
     }
 
     skipBits (n) {
+      if (this.#index + n > this.view.length) {
+        throw new Error('Trying to skip past the end of the stream');
+      }
+
       this.#index += n;
     }
 
@@ -322,16 +326,17 @@
     writeFloat64 = BitStream.#writer('setFloat64', 64);
 
     #readString (size, encoding) {
-      let fixedSize = true;
       const chars = [];
+      let i = 0;
 
       if (size === undefined) {
         size = Number.MAX_SAFE_INTEGER;
-        fixedSize = false;
       }
 
-      while (size-- > 0) {
+      while (i < size) {
         const c = this.readUint8();
+
+        i++;
 
         if (!c) {
           break;
@@ -340,10 +345,8 @@
         chars.push(c);
       }
 
-      if (fixedSize) {
-        while (size-- > 0) {
-          this.readUint8();
-        }
+      if (size !== Number.MAX_SAFE_INTEGER) {
+        this.skipBits((size - i) << 3);
       }
 
       return new TextDecoder(encoding).decode(new Uint8Array(chars));
