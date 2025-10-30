@@ -30,7 +30,7 @@
   "readmeFilename": "README.md",
   "devDependencies": {
     "@types/node": "^14.18.63",
-    "mocha": "^8.4.0"
+    "mocha": "^11.7.4"
   },
   "dependencies": {
     "semistandard": "^17.0.0"
