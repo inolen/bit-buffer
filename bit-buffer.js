@@ -14,11 +14,11 @@
     // used to operate on fp values
     static #scratch = new DataView(new ArrayBuffer(8));
 
-    static #bswap32(x) {
+    static #bswap32 (x) {
       return (((x & 0xff000000) >>> 24) |
-              ((x & 0x00ff0000) >>>  8) |
-              ((x & 0x0000ff00) <<   8) |
-              ((x & 0x000000ff) <<  24)) >>> 0;
+              ((x & 0x00ff0000) >>> 8) |
+              ((x & 0x0000ff00) << 8) |
+              ((x & 0x000000ff) << 24)) >>> 0;
     }
 
     constructor (source, byteOffset, byteLength) {
