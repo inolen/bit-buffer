@@ -11,8 +11,10 @@
     #view;
     #bigEndian;
 
-    // used to operate on fp values
-    static #scratch = new DataView(new ArrayBuffer(8));
+    static #scratchBuffer = new ArrayBuffer(8);
+    static #scratchU32 = new Uint32Array(BitView.#scratchBuffer);
+    static #scratchF32 = new Float32Array(BitView.#scratchBuffer);
+    static #scratchF64 = new Float64Array(BitView.#scratchBuffer);
 
     static #bswap32 (x) {
       return (((x & 0xff000000) >>> 24) |
@@ -157,14 +159,14 @@
     }
 
     getFloat32 (offset) {
-      BitView.#scratch.setUint32(0, this.getUint32(offset));
-      return BitView.#scratch.getFloat32(0);
+      BitView.#scratchU32[0] = this.getUint32(offset);
+      return BitView.#scratchF32[0];
     }
 
     getFloat64 (offset) {
-      BitView.#scratch.setUint32(0, this.getUint32(offset));
-      BitView.#scratch.setUint32(4, this.getUint32(offset + 32));
-      return BitView.#scratch.getFloat64(0);
+      BitView.#scratchU32[0] = this.getUint32(offset);
+      BitView.#scratchU32[1] = this.getUint32(offset + 32);
+      return BitView.#scratchF64[0];
     }
 
     setBoolean (offset, value) {
@@ -196,14 +198,14 @@
     }
 
     setFloat32 (offset, value) {
-      BitView.#scratch.setFloat32(0, value);
-      this.setBits(offset, BitView.#scratch.getUint32(0), 32);
+      BitView.#scratchF32[0] = value;
+      this.setBits(offset, BitView.#scratchU32[0], 32);
     }
 
     setFloat64 (offset, value) {
-      BitView.#scratch.setFloat64(0, value);
-      this.setBits(offset, BitView.#scratch.getUint32(0), 32);
-      this.setBits(offset + 32, BitView.#scratch.getUint32(4), 32);
+      BitView.#scratchF64[0] = value;
+      this.setBits(offset, BitView.#scratchU32[0], 32);
+      this.setBits(offset + 32, BitView.#scratchU32[1], 32);
     }
   }
 

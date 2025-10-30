@@ -97,28 +97,34 @@ suite('BitBuffer', function () {
   });
 
   test('Min / max float32 (normal values)', function () {
-    const scratch = new DataView(new ArrayBuffer(8));
-    scratch.setUint32(0, 0x00800000);
-    scratch.setUint32(4, 0x7f7fffff);
+    const buffer = new ArrayBuffer(8);
 
-    const min = scratch.getFloat32(0);
-    const max = scratch.getFloat32(4);
+    const u32 = new Uint32Array(buffer);
+    u32[0] = 0x00800000;
+    u32[1] = 0x7f7fffff;
+
+    const f32 = new Float32Array(buffer);
+    const min = f32[0];
+    const max = f32[1];
+
     bsw.writeFloat32(min);
     bsw.writeFloat32(max);
-
     assert.equal(bsr.readFloat32(), min);
     assert.equal(bsr.readFloat32(), max);
   });
 
   test('Min / max float64 (normal values)', function () {
-    const scratch = new DataView(new ArrayBuffer(16));
-    scratch.setUint32(0, 0x00100000);
-    scratch.setUint32(4, 0x00000000);
-    scratch.setUint32(8, 0x7fefffff);
-    scratch.setUint32(12, 0xffffffff);
+    const buffer = new ArrayBuffer(16);
 
-    const min = scratch.getFloat64(0);
-    const max = scratch.getFloat64(8);
+    const u32 = new Uint32Array(buffer);
+    u32[0] = 0x00100000;
+    u32[1] = 0x00000000;
+    u32[2] = 0x7fefffff;
+    u32[3] = 0xffffffff;
+
+    const f64 = new Float64Array(buffer);
+    const min = f64[0];
+    const max = f64[1];
     bsw.writeFloat64(min);
     bsw.writeFloat64(max);
 
