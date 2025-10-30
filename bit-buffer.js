@@ -14,6 +14,13 @@
     // used to operate on fp values
     static #scratch = new DataView(new ArrayBuffer(8));
 
+    static #bswap32(x) {
+      return (((x & 0xff000000) >>> 24) |
+              ((x & 0x00ff0000) >>>  8) |
+              ((x & 0x0000ff00) <<   8) |
+              ((x & 0x000000ff) <<  24)) >>> 0;
+    }
+
     constructor (source, byteOffset, byteLength) {
       if (typeof Buffer !== 'undefined' && source instanceof Buffer) {
         this.#view = new Uint8Array(source.buffer, source.byteOffset, source.length);
@@ -44,51 +51,47 @@
 
     getBits (offset, n, signed) {
       const available = this.length - offset;
-      let value = 0;
 
       if (n > available) {
         throw new Error(`Cannot get ${n} bit(s) from offset ${offset}, ${available} available`);
       }
 
-      for (let i = 0; i < n;) {
-        const remaining = n - i;
-        const bitOffset = offset & 7;
-        const currentByte = this.#view[offset >> 3];
-        const read = Math.min(remaining, 8 - bitOffset);
-        let mask, readBits;
+      const bitsMask = 0xffffffff >>> (32 - n);
+      const signMask = (bitsMask + 1) >>> 1;
+      const partialWord = n !== 32;
+      const skip = offset & 7;
+      let value = 0;
 
-        if (this.#bigEndian) {
-          // create a mask with the correct bit width
-          mask = ~(0xFF << read);
-          // shift the bits we want to the start of the byte and mask of the rest
-          readBits = (currentByte >> (8 - read - bitOffset)) & mask;
+      // byte align
+      offset >>>= 3;
+      n += skip;
 
-          value <<= read;
-          value |= readBits;
-        } else {
-          // create a mask with the correct bit width
-          mask = ~(0xFF << read);
-          // shift the bits we want to the start of the byte and mask off the rest
-          readBits = (currentByte >> bitOffset) & mask;
-
-          value |= readBits << i;
-        }
-
-        offset += read;
-        i += read;
+      for (let i = 0; i < n; i += 8) {
+        value |= this.#view[offset++] << i;
       }
+
+      if (this.#bigEndian) {
+        value = BitView.#bswap32(value);
+
+        // shift the swapped value back into place
+        value >>>= 32 - n;
+      } else {
+        // shift off extra bits read in the first iteration
+        value >>>= skip;
+      }
+
+      // mask off extra bits read in the last iteration
+      value &= bitsMask;
 
       if (signed) {
-        // if not working with a full 32 bits, check the imaginary MSB for this
-        // bit count and convert to a valueid 32-bit signed value if set
-        if (n !== 32 && value & (1 << (n - 1))) {
-          value |= -1 ^ ((1 << n) - 1);
+        if (partialWord && (value & signMask)) {
+          value |= -1 ^ bitsMask;
         }
-
-        return value;
+      } else {
+        value >>>= 0;
       }
 
-      return value >>> 0;
+      return value;
     }
 
     setBits (offset, value, n) {
@@ -98,39 +101,30 @@
         throw new Error(`Cannot set ${n} bit(s) from offset ${offset}, ${available} available`);
       }
 
-      for (let i = 0; i < n;) {
-        const remaining = n - i;
-        const bitOffset = offset & 7;
-        const byteOffset = offset >> 3;
-        const wrote = Math.min(remaining, 8 - bitOffset);
-        let mask, writeBits, destMask;
+      const bitsMask = 0xffffffff >>> (32 - n);
+      const keep = offset & 7;
+      let old = 0;
 
-        if (this.#bigEndian) {
-          // create a mask with the correct bit width
-          mask = ~(~0 << wrote);
-          // shift the bits we want to the start of the byte and mask of the rest
-          writeBits = (value >> (n - i - wrote)) & mask;
+      // byte align
+      offset >>>= 3;
+      n += keep;
 
-          const destShift = 8 - bitOffset - wrote;
-          // destination mask to zero all the bits we're changing first
-          destMask = ~(mask << destShift);
+      for (let i = 0, j = offset; i < n; i += 8, j++) {
+        old |= this.#view[j] << i;
+      }
 
-          this.#view[byteOffset] = (this.#view[byteOffset] & destMask) | (writeBits << destShift);
-        } else {
-          // create a mask with the correct bit width
-          mask = ~(0xFF << wrote);
-          // shift the bits we want to the start of the byte and mask of the rest
-          writeBits = value & mask;
-          value >>= wrote;
+      if (this.#bigEndian) {
+        old = BitView.#bswap32(old);
 
-          // destination mask to zero all the bits we're changing first
-          destMask = ~(mask << bitOffset);
+        value = (old & ~(bitsMask << 32 - n)) | (value << 32 - n);
 
-          this.#view[byteOffset] = (this.#view[byteOffset] & destMask) | (writeBits << bitOffset);
-        }
+        value = BitView.#bswap32(value);
+      } else {
+        value = (old & ~(bitsMask << keep)) | (value << keep);
+      }
 
-        offset += wrote;
-        i += wrote;
+      for (let i = 0, j = offset; i < n; i += 8, j++) {
+        this.#view[j] = value >>> i;
       }
     }
 
