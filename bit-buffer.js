@@ -164,8 +164,9 @@
     }
 
     getFloat64 (offset) {
-      BitView.#scratchU32[0] = this.getUint32(offset);
-      BitView.#scratchU32[1] = this.getUint32(offset + 32);
+      const lowWord = this.#bigEndian ? 1 : 0;
+      BitView.#scratchU32[lowWord] = this.getUint32(offset);
+      BitView.#scratchU32[lowWord ^ 1] = this.getUint32(offset + 32);
       return BitView.#scratchF64[0];
     }
 
@@ -203,9 +204,10 @@
     }
 
     setFloat64 (offset, value) {
+      const lowWord = this.#bigEndian ? 1 : 0;
       BitView.#scratchF64[0] = value;
-      this.setBits(offset, BitView.#scratchU32[0], 32);
-      this.setBits(offset + 32, BitView.#scratchU32[1], 32);
+      this.setBits(offset, BitView.#scratchU32[lowWord], 32);
+      this.setBits(offset + 32, BitView.#scratchU32[lowWord ^ 1], 32);
     }
   }
 
