@@ -117,10 +117,10 @@ suite('BitBuffer', function () {
     const buffer = new ArrayBuffer(16);
 
     const u32 = new Uint32Array(buffer);
-    u32[0] = 0x00100000;
-    u32[1] = 0x00000000;
-    u32[2] = 0x7fefffff;
-    u32[3] = 0xffffffff;
+    u32[0] = 0x00000000;
+    u32[1] = 0x00100000;
+    u32[2] = 0xffffffff;
+    u32[3] = 0x7fefffff;
 
     const f64 = new Float64Array(buffer);
     const min = f64[0];
